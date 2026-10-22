@@ -1,4 +1,4 @@
-import { BakeryArt } from "../Art";
+import { BakeryRoomArt } from "./BakeryRoom";
 import type { SceneId } from "../../game/scenes";
 import type { Npc } from "../../game/data";
 export type Actor = Npc | "customer";
@@ -533,7 +533,7 @@ export function SceneStage({
   return (
     <div className={"scene-stage scene-" + scene}>
       <div className="scene-backdrop" key={scene}>
-        {scene === "bakery" ? <BakeryArt /> : <VillageArt scene={scene} />}
+        {scene === "bakery" ? <BakeryRoomArt /> : <VillageArt scene={scene} />}
       </div>
       <div className="scene-vignette" />
       {actor && <CharacterSprite key={actor} actor={actor} />}

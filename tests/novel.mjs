@@ -16,7 +16,7 @@ await expect(page.getByText(/You left the human world looking/)).toBeVisible();
 await page.keyboard.press("1");
 await page.keyboard.press("1");
 await expect(
-  page.getByRole("button", { name: /Let’s get baking/ }),
+  page.getByRole("region", { name: "Interactive bakery" }),
 ).toBeVisible();
 await page.getByRole("button", { name: "Quest journal", exact: true }).click();
 await page.keyboard.press("Tab");
@@ -42,7 +42,7 @@ await page.evaluate(() => {
   );
 });
 await page.reload();
-await page.getByRole("button", { name: /Spend time with Orin/ }).click();
+await page.getByRole("button", { name: "Talk to Orin" }).click();
 await page.screenshot({ path: "artifacts/novel-orin.png" });
 await page.getByRole("button", { name: /Continue/ }).click();
 await page.getByRole("button", { name: "Save game", exact: true }).click();
@@ -67,6 +67,9 @@ await expect(
   page.getByRole("button", { name: "Save this chapter" }),
 ).toBeVisible();
 await page.keyboard.press("Escape");
+await page
+  .getByRole("button", { name: "Start work day at cash register" })
+  .click();
 await page.getByRole("button", { name: /Let’s get baking/ }).click();
 await expect(
   page.getByRole("button", { name: "Crescent", exact: true }),

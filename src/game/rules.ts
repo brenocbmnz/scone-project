@@ -5,6 +5,7 @@ export interface Progress {
   version: 1;
   scene: SceneProgress;
   started: boolean;
+  workStarted: boolean;
   day: number;
   phase: Phase;
   money: number;
@@ -26,6 +27,7 @@ export const initial = (): Progress => ({
   version: 1,
   scene: initialScene(),
   started: false,
+  workStarted: false,
   day: 1,
   phase: "work",
   money: 25,
@@ -74,11 +76,13 @@ export function solve(s: Progress, id: string): Progress {
   };
 }
 export function bake(s: Progress, score: number): Progress {
-  if (s.phase !== "work" || s.orders >= 2) return s;
+  if (s.phase !== "work" || !s.workStarted || s.orders >= 2) return s;
   return {
     ...s,
     money: s.money + 12 + score * 4 + (s.level - 1) * 2,
     orders: s.orders + 1,
+    workStarted: s.orders !== 1,
+    scene: { ...s.scene, room: s.orders === 1 },
     totalOrders: s.totalOrders + 1,
     phase: s.orders === 1 ? "free" : "work",
   };
@@ -108,6 +112,7 @@ export function sleep(s: Progress): Progress {
         day: s.day + 1,
         scene: initialScene(),
         orders: 0,
+        workStarted: false,
         phase: s.scheduled ? "ending" : "work",
       };
 }
@@ -128,6 +133,7 @@ export function parseSave(raw: string | null): Progress | null {
     const s = {
       ...base,
       ...v,
+      workStarted: v.workStarted === undefined ? v.orders === 1 : v.workStarted,
       affection: { ...base.affection, ...(v.affection as object) },
       romance: { ...base.romance, ...(v.romance as object) },
       final: { ...base.final, ...(v.final as object) },
@@ -141,7 +147,8 @@ export function parseSave(raw: string | null): Progress | null {
       !integer(s.level, 1, 5) ||
       !integer(s.orders, 0, 2) ||
       !integer(s.totalOrders, 0) ||
-      typeof s.started !== "boolean"
+      typeof s.started !== "boolean" ||
+      typeof s.workStarted !== "boolean"
     )
       return null;
     if (
@@ -171,6 +178,7 @@ export function parseSave(raw: string | null): Progress | null {
       return null;
     const scene = { ...initialScene(), ...(v.scene as object) };
     if (
+      typeof scene.room !== "boolean" ||
       !["home", "village"].includes(scene.screen) ||
       ![null, 0, 1, 2].includes(scene.visit) ||
       ![null, "orin", "lucien"].includes(scene.talk) ||

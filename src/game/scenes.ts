@@ -56,6 +56,7 @@ export function homeNarration(s: Progress): StoryBeat {
 
 export interface SceneProgress {
   screen: "home" | "village";
+  room: boolean;
   visit: number | null;
   talk: Npc | null;
   beat: number;
@@ -63,6 +64,7 @@ export interface SceneProgress {
 }
 export const initialScene = (): SceneProgress => ({
   screen: "home",
+  room: true,
   visit: null,
   talk: null,
   beat: 0,

@@ -20,7 +20,7 @@ for (const [location, answer] of [
   ["Mushroom Square", "Cora"],
 ]) {
   await seed({ phase: "free" });
-  await page.getByRole("button", { name: /Wander into town/ }).click();
+  await page.getByRole("button", { name: "Go outside" }).click();
   await page
     .getByRole("button", { name: new RegExp(`Visit ${location}`) })
     .click();

@@ -1,3 +1,10 @@
+import { BakeryRoom } from "./components/novel/BakeryRoom";
+import {
+  startWork,
+  canLeaveBakery,
+  canSleep,
+  type RoomObject,
+} from "./game/bakeryRoom";
 import { useEffect, useRef, useState } from "react";
 import {
   BookOpen,
@@ -75,18 +82,32 @@ export default function App() {
   const scene: SceneId =
     visit !== null
       ? locationScenes[visit]
-      : talk === "orin"
-        ? "tower"
-        : talk === "lucien"
-          ? "library"
-          : state.screen === "village"
-            ? "village"
-            : "bakery";
+      : talk && state.room
+        ? "bakery"
+        : talk === "orin"
+          ? "tower"
+          : talk === "lucien"
+            ? "library"
+            : state.screen === "village"
+              ? "village"
+              : "bakery";
+  const roomVisible =
+    scene === "bakery" &&
+    state.intro === null &&
+    !talk &&
+    visit === null &&
+    g.phase !== "ending" &&
+    state.room;
   const actor: Actor | undefined =
     g.phase === "ending"
       ? (g.scheduled ?? undefined)
       : (talk ??
-        (g.phase === "work" && state.intro === null ? "customer" : undefined));
+        (g.phase === "work" &&
+        g.workStarted &&
+        !state.room &&
+        state.intro === null
+          ? "customer"
+          : undefined));
   const notify = (message: string) => {
     setToast(message);
     if (toastTimer.current) clearTimeout(toastTimer.current);
@@ -144,7 +165,61 @@ export default function App() {
       return;
     }
     setOverlay(null);
-    changeScene({ talk: npc, visit: null, beat: 0 });
+    changeScene({
+      talk: npc,
+      visit: null,
+      beat: 0,
+      room: state.screen === "home",
+    });
+  };
+  const interactWithRoom = (object: RoomObject) => {
+    setObservation(null);
+    switch (object) {
+      case "register":
+        if (g.phase === "work") update(startWork);
+        else
+          notify(
+            "The day’s orders are done. The till can rest until tomorrow.",
+          );
+        break;
+      case "oven":
+      case "workbench":
+        if (g.phase === "work" && g.workStarted) setOverlay("baking");
+        else if (object === "oven") setOverlay("upgrades");
+        else setOverlay("recipes");
+        break;
+      case "recipes":
+        setOverlay("recipes");
+        break;
+      case "door":
+        if (canLeaveBakery(g)) changeScene({ screen: "village", room: false });
+        else
+          notify(
+            g.phase === "work"
+              ? "Serve today’s two customers before heading out."
+              : "Your afternoon adventure is done. The village will be here tomorrow.",
+          );
+        break;
+      case "bed":
+        if (canSleep(g)) update(sleep);
+        else
+          notify(
+            g.phase === "work"
+              ? "A fresh day is waiting. Serve your customers before turning in."
+              : "There is still an afternoon adventure to enjoy. Visit town or invite a friend first.",
+          );
+        break;
+      case "orin":
+      case "lucien":
+        if (g.phase === "free") meet(object);
+        else if (eligible(g, object)) {
+          update((s) => scheduleEnding(s, object));
+          notify(
+            `A meeting with ${characters[object].name} is planned for tomorrow. Click the bed when ready.`,
+          );
+        } else
+          notify("Your friend is busy tonight. Try again tomorrow afternoon.");
+    }
   };
   useEffect(
     () => () => {
@@ -312,13 +387,8 @@ export default function App() {
         onSelect: () => setOverlay("baking"),
       },
       {
-        label: "Look around the bakery",
-        onSelect: () =>
-          setObservation(
-            observation
-              ? null
-              : "The oven gives a contented little crackle. Your mixing bowl has wandered six inches to the left. Outside, a gargoyle is pretending not to look through the window. Yes. This will do.",
-          ),
+        label: "Back to the bakery",
+        onSelect: () => changeScene({ room: true }),
       },
     );
   } else if (g.phase === "free") {
@@ -377,6 +447,7 @@ export default function App() {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (
+        roomVisible ||
         menu ||
         overlay ||
         puzzle ||
@@ -406,7 +477,7 @@ export default function App() {
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [menu, overlay, puzzle]);
+  }, [menu, overlay, puzzle, roomVisible]);
   const overlayTitle =
     overlay === "journal"
       ? "Quest journal"
@@ -420,7 +491,10 @@ export default function App() {
               ? "At the workbench"
               : "Settings & save";
   return (
-    <div className="novel-app" ref={frame}>
+    <div
+      className={"novel-app " + (roomVisible ? "room-mode" : "dialogue-mode")}
+      ref={frame}
+    >
       <SceneStage
         scene={scene}
         actor={state.intro !== null ? undefined : actor}
@@ -503,17 +577,21 @@ export default function App() {
           </button>
         </nav>
       </header>
-      <div className="location-marker">
-        <span>
-          <MapPin size={12} />
-          {scene === "bakery" ? "YOUR LITTLE CORNER" : "BRAMBLEWICK"}
-        </span>
-        <h1>{sceneNames[scene]}</h1>
-        <div className="location-rule">
-          <i />✦<i />
+      {!roomVisible && (
+        <div className="location-marker">
+          <span>
+            <MapPin size={12} />
+            {scene === "bakery" ? "YOUR LITTLE CORNER" : "BRAMBLEWICK"}
+          </span>
+          <h1>{sceneNames[scene]}</h1>
+          <div className="location-rule">
+            <i />✦<i />
+          </div>
         </div>
-      </div>
+      )}
+      {roomVisible && <BakeryRoom game={g} onInteract={interactWithRoom} />}
       {state.intro === null &&
+        !roomVisible &&
         !talk &&
         visit === null &&
         g.phase === "work" && (
@@ -541,26 +619,30 @@ export default function App() {
           <span>✧</span>
         </div>
       )}
-      <div className="scene-footnote">
-        <span>
-          <Flame size={13} />
-          Hearth level {g.level}
-        </span>
-        <span>
-          <VolumeX size={12} />A quiet world
-        </span>
-        <span className="save-indicator">● Your story is kept</span>
-      </div>
-      <DialogueBox
-        speaker={speaker}
-        caption={caption}
-        text={text}
-        choices={choices}
-      >
-        {observation && visit === null && (
-          <p className="observation">{observation}</p>
-        )}
-      </DialogueBox>
+      {!roomVisible && (
+        <div className="scene-footnote">
+          <span>
+            <Flame size={13} />
+            Hearth level {g.level}
+          </span>
+          <span>
+            <VolumeX size={12} />A quiet world
+          </span>
+          <span className="save-indicator">● Your story is kept</span>
+        </div>
+      )}
+      {!roomVisible && (
+        <DialogueBox
+          speaker={speaker}
+          caption={caption}
+          text={text}
+          choices={choices}
+        >
+          {observation && visit === null && (
+            <p className="observation">{observation}</p>
+          )}
+        </DialogueBox>
+      )}
       {toast && (
         <div className="toast" role="status">
           <Sparkles size={16} />

@@ -152,6 +152,12 @@ export function BakeryUpgrades() {
         </div>
         <span>Bakery level {g.level} / 5</span>
       </div>
+      {g.phase !== "evening" && (
+        <p className="muted">
+          Browse now; improvements can be purchased in the evening after your
+          afternoon activity.
+        </p>
+      )}
       <div className="upgrade-grid">
         {upgrades.map((u, i) => (
           <article key={u.name} className={g.level > i + 1 ? "purchased" : ""}>
@@ -159,7 +165,9 @@ export function BakeryUpgrades() {
             <h3>{u.name}</h3>
             <p>{u.description}</p>
             <button
-              disabled={g.level !== i + 1 || g.money < u.cost}
+              disabled={
+                g.phase !== "evening" || g.level !== i + 1 || g.money < u.cost
+              }
               onClick={() => update(upgrade)}
             >
               {g.level > i + 1 ? "✓ Purchased" : `${u.cost} coins · Upgrade`}

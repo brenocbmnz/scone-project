@@ -71,6 +71,7 @@ export function SystemMenu({
                 level: 5,
                 scene: {
                   screen: "home",
+                  room: true,
                   visit: null,
                   talk: null,
                   beat: 0,

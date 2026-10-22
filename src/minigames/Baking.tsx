@@ -24,6 +24,10 @@ export function Baking({
   const score = evaluatePastry(r, selected, heat, marks);
   return (
     <>
+      <p className="workbench-order">
+        <strong>{r.customer}’s order:</strong> {r.name} · {r.base} / {r.filling}{" "}
+        / {r.topping}
+      </p>
       <div className="steps">
         {["Assemble", "Bake", "Decorate"].map((s, i) => (
           <span className={stage === i ? "current" : ""} key={s}>

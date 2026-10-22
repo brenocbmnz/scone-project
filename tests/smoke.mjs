@@ -10,6 +10,9 @@ await page.getByRole("button", { name: /Continue/ }).click();
 await page.getByRole("button", { name: /Tie on your apron/ }).click();
 await page.waitForTimeout(650);
 await page.screenshot({ path: "artifacts/bakery-desktop.png", fullPage: true });
+await page
+  .getByRole("button", { name: "Start work day at cash register" })
+  .click();
 for (const r of [
   ["Crescent", "Moonberry", "Star sugar"],
   ["Bun", "Ember apple", "Cinnamon"],
@@ -27,7 +30,7 @@ for (const r of [
   await page.getByRole("button", { name: "Serve with love" }).click();
   await page.getByRole("button", { name: "Collect payment" }).click();
 }
-await page.getByRole("button", { name: "Wander into town" }).click();
+await page.getByRole("button", { name: "Go outside" }).click();
 await page.getByRole("button", { name: "Visit Bell Tower" }).click();
 await page.getByRole("button", { name: /Examine Mossy gargoyle/ }).click();
 await page.getByRole("button", { name: "Investigate the mystery" }).click();
@@ -38,7 +41,7 @@ await page.getByRole("button", { name: "Check my answer" }).click();
 await page.getByText("✦ Solved!", { exact: false }).waitFor();
 await page.getByRole("button", { name: "Back to exploring" }).click();
 await page.getByRole("button", { name: "Head home for the evening" }).click();
-await page.getByRole("button", { name: /Tend to the bakery/ }).click();
+await page.getByRole("button", { name: "Use enchanted oven" }).click();
 await page
   .getByRole("button", { name: "35 coins · Upgrade", exact: true })
   .click();

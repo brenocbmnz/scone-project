@@ -32,7 +32,7 @@ try {
     await delay(250);
   }
   if (!ready) throw new Error("Test server did not become ready");
-  for (const script of ["smoke", "routes", "novel"]) {
+  for (const script of ["smoke", "routes", "novel", "room"]) {
     const child = spawn(process.execPath, [`tests/${script}.mjs`], {
       stdio: "inherit",
       env: { ...process.env, GAME_URL: url },
