@@ -103,14 +103,23 @@ describe("forgiving pastry stacking", () => {
   });
 });
 describe("baking session persistence", () => {
-  it("round trips a moving session through the normal save file", () => {
+  it("migrates a moving legacy session to tactile preparation", () => {
     const baking = addPiece(
       { ...freshSession("moon"), selected: "base:Crescent" },
       "base:Crescent",
       400,
     );
     expect(parseSave(JSON.stringify({ ...initial(), baking }))?.baking).toEqual(
-      baking,
+      {
+        kind: "tactile-v1",
+        recipeId: "moon",
+        stage: "shape",
+        shaped: 0,
+        heat: 0,
+        bakeRating: null,
+        marks: [],
+        assisted: false,
+      },
     );
   });
   it("defaults older saves to an empty session", () => {

@@ -1,7 +1,7 @@
 import {
-  readStackSession,
-  type StackSession,
-} from "../minigames/stacking/physics";
+  readBakingSession,
+  type BakingSession,
+} from "../minigames/baking/session";
 import { initialScene, type SceneProgress } from "./scenes";
 import { type Npc, upgrades, puzzles, quests } from "./data";
 export type Phase = "work" | "free" | "evening" | "ending";
@@ -10,7 +10,7 @@ export interface Progress {
   scene: SceneProgress;
   started: boolean;
   workStarted: boolean;
-  baking: StackSession | null;
+  baking: BakingSession | null;
   day: number;
   phase: Phase;
   money: number;
@@ -199,7 +199,7 @@ export function parseSave(raw: string | null): Progress | null {
       (scene.talk !== null && s.phase !== "free")
     )
       return null;
-    return { ...s, scene, baking: readStackSession(v.baking) };
+    return { ...s, scene, baking: readBakingSession(v.baking) };
   } catch {
     return null;
   }
