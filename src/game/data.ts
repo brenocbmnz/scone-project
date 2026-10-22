@@ -56,6 +56,19 @@ export const recipes = [
     customer: "Vesper",
     quote: "A ghostlight tart for my very much alive grandmother.",
   },
+  {
+    id: "cinnamon",
+    name: "Cinnamon Roll",
+    base: "Roll",
+    filling: "Cinnamon icing",
+    topping: "Sugar sprinkles",
+    color: "#bc8666",
+    description:
+      "A soft spiral roll with cinnamon icing and a happy scatter of sugar sprinkles.",
+    customer: "Bram",
+    quote:
+      "A cinnamon roll, please. Icing and sugar sprinkles. A little tower of happiness.",
+  },
 ];
 export const upgrades = [
   {

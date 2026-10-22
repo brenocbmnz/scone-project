@@ -1,142 +1,302 @@
-import { evaluatePastry } from "./bakingRules";
-import { useEffect, useState } from "react";
+import { StackBoard } from "./stacking/StackBoard";
+import "./stacking/stacking.css";
+import { useId, useRef } from "react";
+import {
+  Check,
+  Undo2,
+  RotateCcw,
+  Hand,
+  ArrowDown,
+  Star,
+  Coins,
+} from "lucide-react";
 import { recipes } from "../game/data";
-import { Pastry } from "../components/Art";
-export function Baking({
-  index,
-  onDone,
-}: {
+import {
+  ingredients,
+  ingredientById,
+  requirementsFor,
+  type Category,
+} from "./stacking/ingredients";
+import { IngredientIcon } from "./stacking/IngredientArt";
+import {
+  addPiece,
+  freshSession,
+  isMoving,
+  scoreStack,
+  type StackSession,
+} from "./stacking/physics";
+import { useStacking } from "./stacking/useStacking";
+interface Props {
   index: number;
+  draft: StackSession | null;
+  onDraft: (s: StackSession) => void;
   onDone: (score: number) => void;
-}) {
-  const r = recipes[index % 3];
-  const [stage, S] = useState(0);
-  const [selected, Q] = useState(["", "", ""]);
-  const [heat, H] = useState(0);
-  const [running, R] = useState(false);
-  const [baked, B] = useState(false);
-  const [marks, M] = useState(0);
-  useEffect(() => {
-    if (!running) return;
-    const id = setInterval(() => H((h) => (h + 1) % 101), 45);
-    return () => clearInterval(id);
-  }, [running]);
-  const score = evaluatePastry(r, selected, heat, marks);
+  bonus?: number;
+}
+const tabs: { id: Category; label: string; number: string }[] = [
+  { id: "base", label: "Dough & pastry", number: "01" },
+  { id: "filling", label: "Fillings & icing", number: "02" },
+  { id: "topping", label: "Toppings", number: "03" },
+];
+export function Baking({ index, draft, onDraft, onDone, bonus = 0 }: Props) {
+  const r = recipes[index % recipes.length];
+  const { session: s, apply } = useStacking(r.id, draft, onDraft);
+  const req = requirementsFor(r);
+  const result = scoreStack(s.pieces, req);
+  const moving = isMoving(s.pieces);
+  const selected = s.selected ? ingredientById(s.selected) : null;
+  const uid = useId();
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const paid = useRef(false);
+  const drop = (x = s.aim) => {
+    if (!selected) return;
+    apply(addPiece(s, selected.id, x));
+  };
+  const aim = (x: number) =>
+    apply({ ...s, aim: Math.round(Math.max(45, Math.min(755, x))) }, false);
+  const spilled = s.pieces.filter((p) => p.status === "lost").length;
   return (
-    <>
-      <p className="workbench-order">
-        <strong>{r.customer}’s order:</strong> {r.name} · {r.base} / {r.filling}{" "}
-        / {r.topping}
-      </p>
-      <div className="steps">
-        {["Assemble", "Bake", "Decorate"].map((s, i) => (
-          <span className={stage === i ? "current" : ""} key={s}>
-            0{i + 1} · {s}
+    <div className={"stacking-game " + (s.served ? "is-served" : "")}>
+      <header className="stacking-title">
+        <div>
+          <span className="eyebrow">
+            A LITTLE BALANCE. A LITTLE BAKERY MAGIC.
           </span>
-        ))}
-      </div>
-      <div className="bake-layout">
-        <div className="pastry-preview">
-          <Pastry variant={r.base} color={r.color} stars={marks} />
-          <span>{r.name}</span>
+          <h2>{r.name}</h2>
+          <p>
+            {s.served
+              ? "Your creation, just as you made it."
+              : "Pick an ingredient. Aim above the plate. Let it fall into place."}
+          </p>
         </div>
-        <div className="bake-controls">
-          {stage === 0 ? (
-            <>
-              <h3>A little of this, a little magic.</h3>
-              {["Pastry base", "Filling", "Finishing touch"].map((label, i) => (
-                <fieldset key={label}>
-                  <legend>{label}</legend>
-                  {recipes.map((rec) => (
-                    <button
-                      className={
-                        selected[i] === [rec.base, rec.filling, rec.topping][i]
-                          ? "selected ingredient"
-                          : "ingredient"
-                      }
-                      key={rec.id}
-                      onClick={() =>
-                        Q((s) =>
-                          s.map((v, j) =>
-                            j === i
-                              ? [rec.base, rec.filling, rec.topping][i]
-                              : v,
-                          ),
-                        )
-                      }
-                    >
-                      {[rec.base, rec.filling, rec.topping][i]}
-                    </button>
-                  ))}
-                </fieldset>
-              ))}
-              <button
-                className="primary"
-                disabled={selected.some((s) => !s)}
-                onClick={() => S(1)}
+        <div className="stack-score" role="status" aria-label="Recipe score">
+          <Star size={19} />
+          <strong>
+            {result.points}
+            <small> / {result.total}</small>
+          </strong>
+          <span>recipe points</span>
+        </div>
+      </header>
+      <div className="stack-layout">
+        <div className="stack-play">
+          <div
+            className="mobile-stack-checklist"
+            aria-label="Recipe at a glance"
+          >
+            {result.details.map((item) => (
+              <span
+                key={item.ingredientId}
+                className={item.standing >= item.count ? "checked" : ""}
               >
-                Into the oven →
-              </button>
-            </>
-          ) : stage === 1 ? (
-            <>
-              <h3>Find the cozy spot.</h3>
-              <p>
-                Start the oven, then stop the warmth in the green zone. Take
-                your time; you can try again.
-              </p>
-              <div className="heat">
-                <div className="sweet-zone" />
-                <i style={{ left: `${heat}%` }} />
-              </div>
-              <p className="muted">
-                Cool <span className="right">A little too toasty</span>
-              </p>
+                {item.standing >= item.count ? "✓" : "○"}{" "}
+                {ingredientById(item.ingredientId)!.name}
+              </span>
+            ))}
+          </div>
+          <div
+            className="ingredient-tabs"
+            role="tablist"
+            aria-label="Ingredient types"
+          >
+            {tabs.map((t, index) => (
               <button
-                className="primary"
-                onClick={() => {
-                  if (running) {
-                    R(false);
-                    B(true);
-                  } else {
-                    R(true);
-                    B(false);
-                  }
+                role="tab"
+                key={t.id}
+                ref={(el) => {
+                  tabRefs.current[index] = el;
+                }}
+                id={`${uid}-${t.id}`}
+                aria-controls={`${uid}-pantry`}
+                aria-selected={s.category === t.id}
+                tabIndex={s.category === t.id ? 0 : -1}
+                onClick={() => apply({ ...s, category: t.id })}
+                onKeyDown={(e) => {
+                  let next = index;
+                  if (e.key === "ArrowRight") next = (index + 1) % tabs.length;
+                  else if (e.key === "ArrowLeft")
+                    next = (index + tabs.length - 1) % tabs.length;
+                  else if (e.key === "Home") next = 0;
+                  else if (e.key === "End") next = tabs.length - 1;
+                  else return;
+                  e.preventDefault();
+                  apply({ ...s, category: tabs[next].id });
+                  tabRefs.current[next]?.focus();
                 }}
               >
-                {running ? "Take it out" : "Warm the oven"}
+                <small>{t.number}</small>
+                {t.label}
               </button>
-              {baked && (
-                <button onClick={() => S(2)}>Time to decorate →</button>
-              )}
+            ))}
+          </div>
+          <div
+            role="tabpanel"
+            id={`${uid}-pantry`}
+            aria-labelledby={`${uid}-${s.category}`}
+            className="ingredient-tray"
+          >
+            {ingredients
+              .filter((i) => i.category === s.category)
+              .map((i) => {
+                const needed = req.some((r) => r.ingredientId === i.id);
+                return (
+                  <button
+                    key={i.id}
+                    aria-label={`Pick ${i.name}`}
+                    aria-pressed={s.selected === i.id}
+                    className={
+                      "pantry-item " + (s.selected === i.id ? "picked" : "")
+                    }
+                    disabled={s.served || moving}
+                    onClick={() => apply({ ...s, selected: i.id })}
+                  >
+                    <IngredientIcon ingredient={i} />
+                    <strong>{i.name}</strong>
+                    <small>{needed ? "On the recipe" : "A little extra"}</small>
+                  </button>
+                );
+              })}
+          </div>
+          <StackBoard
+            session={s}
+            selected={selected ?? null}
+            moving={moving}
+            spilled={spilled}
+            aim={aim}
+            drop={drop}
+          />
+          {!s.served && (
+            <div className="stack-tools">
+              <label>
+                <span>Aim your drop</span>
+                <input
+                  aria-label="Drop position"
+                  type="range"
+                  min="45"
+                  max="755"
+                  step="5"
+                  value={s.aim}
+                  disabled={moving}
+                  onChange={(e) => aim(Number(e.target.value))}
+                />
+              </label>
+              <button
+                className="drop-piece"
+                disabled={!selected || moving || s.pieces.length >= 12}
+                onClick={() => drop()}
+              >
+                <ArrowDown size={15} />
+                Drop ingredient
+              </button>
+              <button
+                aria-label="Undo last ingredient"
+                disabled={!s.pieces.length || moving}
+                onClick={() => apply({ ...s, pieces: s.pieces.slice(0, -1) })}
+              >
+                <Undo2 size={16} />
+              </button>
+              <button
+                aria-label="Clear plate"
+                disabled={!s.pieces.length || moving}
+                onClick={() =>
+                  apply({
+                    ...freshSession(r.id),
+                    category: s.category,
+                    selected: s.selected,
+                    aim: s.aim,
+                  })
+                }
+              >
+                <RotateCcw size={16} />
+              </button>
+            </div>
+          )}
+        </div>
+        <aside className="stack-recipe">
+          <span className="eyebrow">
+            {r.customer.toUpperCase()}’S LITTLE WISH
+          </span>
+          <h3>
+            {s.served
+              ? ["Homemade", "Homemade", "Great", "Perfect"][
+                  result.payoutScore
+                ] + "!"
+              : "A recipe for happiness"}
+          </h3>
+          <p className="stack-quote">“{r.quote}”</p>
+          <ul className="stack-checklist">
+            {result.details.map((item) => (
+              <li
+                key={item.ingredientId}
+                className={item.standing >= item.count ? "complete" : ""}
+              >
+                <span className="recipe-check">
+                  {item.standing >= item.count ? <Check size={13} /> : <span />}
+                </span>
+                <div>
+                  <strong>{ingredientById(item.ingredientId)!.name}</strong>
+                  <small>
+                    {Math.min(item.standing, item.count)} / {item.count} on the
+                    plate
+                  </small>
+                </div>
+                <span>+{item.count}</span>
+              </li>
+            ))}
+          </ul>
+          {s.served ? (
+            <>
+              <p className="stack-verdict">
+                {result.points === result.total
+                  ? "Every little layer stayed. A lovely bit of balance."
+                  : result.points === 0
+                    ? "A wonderfully unconventional creation. There’s always another batch."
+                    : "A little wonky, a little wonderful. The missing pieces will be easier next time."}
+              </p>
+              <div className="stack-payout">
+                <Coins size={17} />
+                {12 + result.payoutScore * 4 + bonus}
+                <small>coins earned</small>
+              </div>
+              <button
+                className="primary full"
+                disabled={paid.current}
+                onClick={() => {
+                  if (paid.current) return;
+                  paid.current = true;
+                  onDone(result.payoutScore);
+                }}
+              >
+                Collect payment →
+              </button>
             </>
           ) : (
             <>
-              <h3>Make it yours.</h3>
-              <p>Sprinkle at least three little touches on your pastry.</p>
+              <div className="stack-tip">
+                <Hand size={17} />
+                <p>
+                  Start with dough. Keep your next layer near the middle of the
+                  one below.
+                </p>
+              </div>
+              <p className="stack-rules">
+                1 point for each requested ingredient still supported by the
+                plate when you serve. Extras don’t add points.
+              </p>
               <button
-                className="decoration"
-                onClick={() => M((n) => Math.min(8, n + 1))}
+                className="primary full serve-stack"
+                disabled={moving || !s.pieces.length}
+                onClick={() => apply({ ...s, served: true })}
               >
-                ✦ Add {r.topping.toLowerCase()} · {marks}/8
+                Serve my creation →
               </button>
-              <button className="primary" onClick={() => S(3)}>
-                Serve with love →
-              </button>
+              <small className="stack-pause">
+                No timer. No rush. Your stack saves when you leave.
+              </small>
             </>
           )}
-        </div>
+        </aside>
       </div>
-      {stage === 3 && (
-        <div className="result">
-          <span className="eyebrow">FRESH FROM YOUR OVEN</span>
-          <h2>{["Homemade", "Homemade", "Great", "Perfect"][score]}!</h2>
-          <p>Even a slightly wonky pastry can make someone’s day.</p>
-          <button className="primary" onClick={() => onDone(score)}>
-            Collect payment →
-          </button>
-        </div>
-      )}
-    </>
+    </div>
   );
 }

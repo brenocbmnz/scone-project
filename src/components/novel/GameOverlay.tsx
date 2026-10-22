@@ -29,9 +29,12 @@ export function GameOverlay({
       if (e.key === "Tab") {
         const controls = [
           ...box!.querySelectorAll<HTMLElement>(
-            'button:not(:disabled),input,summary,[tabindex="0"]',
+            'button:not(:disabled),input:not(:disabled),summary,[tabindex="0"]:not(:disabled)',
           ),
-        ];
+        ].filter(
+          (control) =>
+            control.tabIndex >= 0 && control.getClientRects().length > 0,
+        );
         const first = controls[0],
           last = controls.at(-1);
         if (

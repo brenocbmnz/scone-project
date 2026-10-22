@@ -695,6 +695,18 @@ export default function App() {
           {overlay === "baking" ? (
             <Baking
               index={recipeIndex}
+              draft={g.baking}
+              bonus={(g.level - 1) * 2}
+              onDraft={(draft) =>
+                update((s) =>
+                  s.phase === "work" &&
+                  s.workStarted &&
+                  s.day === g.day &&
+                  s.orders === g.orders
+                    ? { ...s, baking: draft }
+                    : s,
+                )
+              }
               onDone={(score) => {
                 const before = g.money;
                 update((s) => bake(s, score));

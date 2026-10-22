@@ -210,7 +210,31 @@ export function Pastry({
       aria-label={`Your handmade ${variant.toLowerCase()}`}
     >
       <ellipse cx="120" cy="129" rx="90" ry="18" fill="#fff3df" opacity=".7" />
-      {variant === "Bun" ? (
+      {variant === "Roll" ? (
+        <g transform="translate(120 88)">
+          <path
+            d="M-77-7L-73 22Q0 49 73 22L77-7"
+            fill="#cb925e"
+            stroke="#ac754e"
+            strokeWidth="3"
+          />
+          <ellipse
+            cy="-8"
+            rx="77"
+            ry="27"
+            fill="#edbd81"
+            stroke="#ac754e"
+            strokeWidth="3"
+          />
+          <path
+            d="M-55-2Q-55-33 3-27Q57-22 55-5Q50 14 2 9Q-34 6-31-9Q-25-22 5-16Q27-12 21-4Q16 1 0-3"
+            fill="none"
+            stroke="#a76e48"
+            strokeWidth="6"
+            strokeLinecap="round"
+          />
+        </g>
+      ) : variant === "Bun" ? (
         <>
           <path
             d="M45 112Q34 32 120 28Q207 35 198 111Q180 142 120 141Q65 140 45 112"

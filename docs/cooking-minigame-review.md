@@ -1,6 +1,6 @@
 # Cooking minigame review and proposed direction
 
-Status: research and design proposal, October 22, 2026. No cooking mechanics changed by this review.
+Status: historical research and design proposal, October 22, 2026. The user subsequently chose a forgiving ingredient-stacking game inspired by Pokémon Scarlet/Violet sandwiches. That direction is implemented on this branch and described in the README; the multi-stage proposal below is retained only as research history.
 
 Branch: `feature/cooking-minigame`. The approved visual novel / interactive bakery iteration is merged into `main`.
 
