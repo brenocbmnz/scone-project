@@ -1,3 +1,4 @@
+import { contactWithSurface, profileFor, type Contact } from "./collision";
 import { ingredientById, type Requirement, type Category } from "./ingredients";
 export const WORLD = {
   width: 800,
@@ -38,34 +39,77 @@ export const freshSession = (recipeId: string): StackSession => ({
 });
 export const isMoving = (pieces: readonly Piece[]) =>
   pieces.some((p) => p.status === "falling" || p.status === "sliding");
+const plate = {
+  left: WORLD.plateLeft,
+  right: WORLD.plateRight,
+  y: WORLD.plateY,
+};
+export function contactsAt(
+  pieces: readonly Piece[],
+  ingredientId: string,
+  x: number,
+  angle = 0,
+): Contact[] {
+  return [
+    contactWithSurface(ingredientId, x, angle, plate),
+    ...pieces
+      .filter((p) => p.status === "settled")
+      .map((p) => contactWithSurface(ingredientId, x, angle, p)),
+  ]
+    .filter((c): c is Contact => !!c)
+    .sort((a, b) => a.y - b.y);
+}
+export function placementAt(
+  pieces: readonly Piece[],
+  ingredientId: string,
+  x: number,
+  y?: number,
+) {
+  const safeX = Math.max(45, Math.min(755, x));
+  const contact = contactsAt(pieces, ingredientId, safeX)[0];
+  const floor = WORLD.floorY - profileFor(ingredientId).bottom;
+  const landing = contact?.y ?? floor;
+  return {
+    x: safeX,
+    y: y === undefined ? landing - 8 : Math.max(-800, Math.min(y, landing)),
+    landing,
+  };
+}
+export function canLiftPiece(piece: Piece, pieces: readonly Piece[]) {
+  return !isMoving(pieces) && !pieces.some((p) => p.support === piece.id);
+}
 export function addPiece(
   s: StackSession,
   ingredientId: string,
   x: number,
+  y?: number,
+  sourceId?: number,
 ): StackSession {
+  const source =
+    sourceId === undefined ? null : s.pieces.find((p) => p.id === sourceId);
   if (
     s.served ||
     isMoving(s.pieces) ||
-    s.pieces.length >= 12 ||
-    !ingredientById(ingredientId)
+    !ingredientById(ingredientId) ||
+    (sourceId !== undefined &&
+      (!source ||
+        source.ingredientId !== ingredientId ||
+        !canLiftPiece(source, s.pieces))) ||
+    (!source && s.pieces.length >= 12)
   )
     return s;
-  const top = Math.min(
-    90,
-    ...s.pieces
-      .filter((p) => p.status === "settled")
-      .map((p) => p.y - ingredientById(p.ingredientId)!.height / 2 - 80),
-  );
+  const remaining = s.pieces.filter((p) => p.id !== sourceId);
+  const position = placementAt(remaining, ingredientId, x, y);
   return {
     ...s,
     nextId: s.nextId + 1,
     pieces: [
-      ...s.pieces,
+      ...remaining,
       {
         id: s.nextId,
         ingredientId,
-        x: Math.max(45, Math.min(755, x)),
-        y: Math.max(30, top),
+        x: position.x,
+        y: position.y,
         vx: 0,
         vy: 0,
         angle: 0,
@@ -75,121 +119,99 @@ export function addPiece(
     ],
   };
 }
-function surfaceFor(p: Piece, pieces: readonly Piece[], dt: number) {
-  const ingredient = ingredientById(p.ingredientId)!;
-  const bottom = p.y + ingredient.height / 2;
-  const nextBottom = bottom + p.vy * dt + 950 * dt * dt;
-  const surfaces = [
-    {
-      id: "plate" as number | "plate",
-      left: WORLD.plateLeft,
-      right: WORLD.plateRight,
-      top: WORLD.plateY,
-    },
-    ...pieces
-      .filter((o) => o.id !== p.id && o.status === "settled")
-      .map((o) => {
-        const i = ingredientById(o.ingredientId)!;
-        return {
-          id: o.id,
-          left: o.x - i.width / 2,
-          right: o.x + i.width / 2,
-          top: o.y - i.height / 2,
-        };
-      }),
-  ];
-  return surfaces
-    .filter(
-      (s) =>
-        bottom <= s.top + 3 &&
-        nextBottom >= s.top &&
-        p.x + ingredient.width / 2 > s.left &&
-        p.x - ingredient.width / 2 < s.right,
-    )
-    .sort((a, b) => a.top - b.top)[0];
-}
 export function stepPieces(input: readonly Piece[], delta: number): Piece[] {
   const dt = Math.max(0, Math.min(delta, 1 / 30));
   return input.map((original) => {
     if (original.status === "settled" || original.status === "lost")
       return original;
     const p = { ...original };
-    const i = ingredientById(p.ingredientId)!;
     if (p.status === "sliding") {
+      p.x += p.vx * dt;
+      p.angle += Math.sign(p.vx) * dt * 35;
       const support =
         p.support === "plate"
-          ? {
-              left: WORLD.plateLeft,
-              right: WORLD.plateRight,
-              top: WORLD.plateY,
-            }
+          ? plate
           : input.find((o) => o.id === p.support && o.status === "settled");
-      if (!support) {
-        p.status = "falling";
-        p.support = null;
-      } else {
-        const bounds =
-          "left" in support
-            ? support
-            : {
-                left:
-                  support.x - ingredientById(support.ingredientId)!.width / 2,
-                right:
-                  support.x + ingredientById(support.ingredientId)!.width / 2,
-                top:
-                  support.y - ingredientById(support.ingredientId)!.height / 2,
-              };
-        p.x += p.vx * dt;
-        p.angle += Math.sign(p.vx) * dt * 35;
-        p.y = bounds.top - i.height / 2;
-        if (
-          p.x - i.width / 2 >= bounds.right ||
-          p.x + i.width / 2 <= bounds.left
-        ) {
-          p.status = "falling";
-          p.support = null;
-          p.vy = 35;
-        }
+      const contact = support
+        ? contactWithSurface(p.ingredientId, p.x, p.angle, support)
+        : null;
+      if (contact) {
+        p.y = contact.y;
         return p;
       }
+      p.status = "falling";
+      p.support = null;
+      p.vy = 35;
     }
-    const surface = surfaceFor(p, input, dt);
     p.vy += 950 * dt;
     p.x += p.vx * dt;
-    if (surface) {
-      p.y = surface.top - i.height / 2;
-      const overlap = Math.max(
-        0,
-        Math.min(p.x + i.width / 2, surface.right) -
-          Math.max(p.x - i.width / 2, surface.left),
-      );
+    const nextY = p.y + p.vy * dt;
+    const contact = contactsAt(
+      input.filter((o) => o.id !== p.id),
+      p.ingredientId,
+      p.x,
+      p.angle,
+    ).find((c) => p.y <= c.y + 2 && nextY >= c.y);
+    if (contact) {
+      // Resting pieces have no rotation; recalculate the same contour contact at that pose.
+      const surface =
+        contact.id === "plate"
+          ? plate
+          : input.find((o) => o.id === contact.id)!;
+      const overlap = contact.overlap,
+        profile = profileFor(p.ingredientId, p.angle);
       const stable =
-        p.x >= surface.left - 8 &&
-        p.x <= surface.right + 8 &&
-        overlap >= i.width * 0.24;
+        p.x >= contact.left - 6 &&
+        p.x <= contact.right + 6 &&
+        overlap >= (profile.right - profile.left) * 0.2;
       if (stable) {
+        p.angle = 0;
+        p.y = contactWithSurface(p.ingredientId, p.x, 0, surface)!.y;
         p.status = "settled";
         p.vx = 0;
         p.vy = 0;
-        p.angle = 0;
-        p.support = surface.id;
+        p.support = contact.id;
       } else {
+        p.y = contact.y;
         p.status = "sliding";
-        p.vx = (p.x < (surface.left + surface.right) / 2 ? -1 : 1) * 155;
+        p.vx = (p.x < (contact.left + contact.right) / 2 ? -1 : 1) * 155;
         p.vy = 0;
-        p.support = surface.id;
+        p.support = contact.id;
       }
-    } else p.y += p.vy * dt;
-    if (p.y + i.height / 2 >= WORLD.floorY || p.x < -100 || p.x > 900) {
+    } else p.y = nextY;
+    const bottom = profileFor(p.ingredientId, p.angle).bottom;
+    if (p.y + bottom >= WORLD.floorY || p.x < -100 || p.x > 900) {
       p.status = "lost";
       p.support = null;
-      p.y = WORLD.floorY - i.height / 2;
       p.vx = 0;
       p.vy = 0;
       p.angle = p.x < 400 ? -18 : 18;
+      p.y = WORLD.floorY - profileFor(p.ingredientId, p.angle).bottom;
     }
     return p;
   });
+}
+// Refit old rectangular-hitbox saves without changing ingredients, points, or money.
+export function reconcilePieces(pieces: readonly Piece[]): Piece[] {
+  const fixed: Piece[] = [];
+  for (const original of pieces) {
+    const p = { ...original };
+    if (p.status === "settled") {
+      const support =
+        p.support === "plate" ? plate : fixed.find((b) => b.id === p.support);
+      const contact = support
+        ? contactWithSurface(p.ingredientId, p.x, p.angle, support)
+        : null;
+      if (contact) p.y = contact.y;
+    } else if (p.status === "lost")
+      p.y = WORLD.floorY - profileFor(p.ingredientId, p.angle).bottom;
+    else {
+      const contact = contactsAt(fixed, p.ingredientId, p.x, p.angle)[0];
+      if (contact) p.y = Math.min(p.y, contact.y);
+    }
+    fixed.push(p);
+  }
+  return fixed;
 }
 export function onPlate(
   piece: Piece,
@@ -276,7 +298,7 @@ export function readStackSession(value: unknown): StackSession | null {
       return null;
     for (const p of s.pieces)
       if (typeof p.support === "number" && !ids.has(p.support)) return null;
-    return s;
+    return { ...s, pieces: reconcilePieces(s.pieces) };
   } catch {
     return null;
   }

@@ -1,3 +1,5 @@
+import { useIngredientDrag } from "./stacking/useIngredientDrag";
+import { DragPreview } from "./stacking/DragPreview";
 import { StackBoard } from "./stacking/StackBoard";
 import "./stacking/stacking.css";
 import { useId, useRef } from "react";
@@ -48,15 +50,49 @@ export function Baking({ index, draft, onDraft, onDone, bonus = 0 }: Props) {
   const uid = useId();
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const paid = useRef(false);
+  const boardRef = useRef<HTMLDivElement>(null);
   const drop = (x = s.aim) => {
     if (!selected) return;
     apply(addPiece(s, selected.id, x));
   };
   const aim = (x: number) =>
     apply({ ...s, aim: Math.round(Math.max(45, Math.min(755, x))) }, false);
+  const { drag, begin, consumeClick } = useIngredientDrag({
+    onSelect: (id) => apply({ ...s, selected: id }),
+    onRelease: (item) => {
+      const rect = boardRef.current
+        ?.querySelector("svg")
+        ?.getBoundingClientRect();
+      if (
+        !rect ||
+        item.clientX < rect.left ||
+        item.clientX > rect.right ||
+        item.clientY < rect.top ||
+        item.clientY > rect.bottom
+      )
+        return;
+      const scale = rect.width / 800;
+      const placed = addPiece(
+        s,
+        item.ingredientId,
+        (item.clientX - rect.left) / scale,
+        (item.clientY - rect.top) / scale,
+        item.sourceId,
+      );
+      apply({ ...placed, selected: null });
+    },
+  });
+  const busy = moving || !!drag;
   const spilled = s.pieces.filter((p) => p.status === "lost").length;
   return (
-    <div className={"stacking-game " + (s.served ? "is-served" : "")}>
+    <div
+      className={
+        "stacking-game " +
+        (s.served ? "is-served" : "") +
+        (drag ? " is-dragging" : "")
+      }
+    >
+      <DragPreview drag={drag} boardRef={boardRef} session={s} />
       <header className="stacking-title">
         <div>
           <span className="eyebrow">
@@ -66,7 +102,7 @@ export function Baking({ index, draft, onDraft, onDone, bonus = 0 }: Props) {
           <p>
             {s.served
               ? "Your creation, just as you made it."
-              : "Pick an ingredient. Aim above the plate. Let it fall into place."}
+              : "Drag an ingredient onto the plate. Release it where you want it to rest."}
           </p>
         </div>
         <div className="stack-score" role="status" aria-label="Recipe score">
@@ -110,6 +146,7 @@ export function Baking({ index, draft, onDraft, onDone, bonus = 0 }: Props) {
                 aria-controls={`${uid}-pantry`}
                 aria-selected={s.category === t.id}
                 tabIndex={s.category === t.id ? 0 : -1}
+                disabled={!!drag}
                 onClick={() => apply({ ...s, category: t.id })}
                 onKeyDown={(e) => {
                   let next = index;
@@ -148,7 +185,10 @@ export function Baking({ index, draft, onDraft, onDone, bonus = 0 }: Props) {
                       "pantry-item " + (s.selected === i.id ? "picked" : "")
                     }
                     disabled={s.served || moving}
-                    onClick={() => apply({ ...s, selected: i.id })}
+                    onPointerDown={(e) => begin(e, i.id)}
+                    onClick={() => {
+                      if (!consumeClick()) apply({ ...s, selected: i.id });
+                    }}
                   >
                     <IngredientIcon ingredient={i} />
                     <strong>{i.name}</strong>
@@ -158,9 +198,13 @@ export function Baking({ index, draft, onDraft, onDone, bonus = 0 }: Props) {
               })}
           </div>
           <StackBoard
+            boardRef={boardRef}
+            drag={drag}
+            beginDrag={begin}
+            consumeClick={consumeClick}
             session={s}
             selected={selected ?? null}
-            moving={moving}
+            moving={busy}
             spilled={spilled}
             aim={aim}
             drop={drop}
@@ -168,36 +212,36 @@ export function Baking({ index, draft, onDraft, onDone, bonus = 0 }: Props) {
           {!s.served && (
             <div className="stack-tools">
               <label>
-                <span>Aim your drop</span>
+                <span>Choose placement</span>
                 <input
-                  aria-label="Drop position"
+                  aria-label="Placement position"
                   type="range"
                   min="45"
                   max="755"
                   step="5"
                   value={s.aim}
-                  disabled={moving}
+                  disabled={busy}
                   onChange={(e) => aim(Number(e.target.value))}
                 />
               </label>
               <button
                 className="drop-piece"
-                disabled={!selected || moving || s.pieces.length >= 12}
+                disabled={!selected || busy || s.pieces.length >= 12}
                 onClick={() => drop()}
               >
                 <ArrowDown size={15} />
-                Drop ingredient
+                Place ingredient
               </button>
               <button
                 aria-label="Undo last ingredient"
-                disabled={!s.pieces.length || moving}
+                disabled={!s.pieces.length || busy}
                 onClick={() => apply({ ...s, pieces: s.pieces.slice(0, -1) })}
               >
                 <Undo2 size={16} />
               </button>
               <button
                 aria-label="Clear plate"
-                disabled={!s.pieces.length || moving}
+                disabled={!s.pieces.length || busy}
                 onClick={() =>
                   apply({
                     ...freshSession(r.id),
@@ -275,8 +319,8 @@ export function Baking({ index, draft, onDraft, onDone, bonus = 0 }: Props) {
               <div className="stack-tip">
                 <Hand size={17} />
                 <p>
-                  Start with dough. Keep your next layer near the middle of the
-                  one below.
+                  Drag from the tray, or pick an ingredient and use Place
+                  ingredient. Upper layers can be picked up again.
                 </p>
               </div>
               <p className="stack-rules">
@@ -285,7 +329,7 @@ export function Baking({ index, draft, onDraft, onDone, bonus = 0 }: Props) {
               </p>
               <button
                 className="primary full serve-stack"
-                disabled={moving || !s.pieces.length}
+                disabled={busy || !s.pieces.length}
                 onClick={() => apply({ ...s, served: true })}
               >
                 Serve my creation →

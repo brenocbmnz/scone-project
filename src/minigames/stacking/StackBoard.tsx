@@ -1,7 +1,18 @@
+import type { RefObject, PointerEvent } from "react";
+import type { DragItem } from "./useIngredientDrag";
+import { hitPiece } from "./collision";
 import { IngredientShape } from "./IngredientArt";
 import { ingredientById, type Ingredient } from "./ingredients";
-import { WORLD, onPlate, type StackSession } from "./physics";
+import { WORLD, placementAt, canLiftPiece, type StackSession } from "./physics";
 interface Props {
+  boardRef: RefObject<HTMLDivElement | null>;
+  drag: DragItem | null;
+  beginDrag: (
+    e: PointerEvent<HTMLElement>,
+    ingredientId: string,
+    sourceId?: number,
+  ) => void;
+  consumeClick: () => boolean;
   session: StackSession;
   selected: Ingredient | null;
   moving: boolean;
@@ -10,6 +21,10 @@ interface Props {
   drop: (x?: number) => void;
 }
 export function StackBoard({
+  boardRef,
+  drag,
+  beginDrag,
+  consumeClick,
   session: s,
   selected,
   moving,
@@ -17,8 +32,20 @@ export function StackBoard({
   aim,
   drop,
 }: Props) {
+  const point = (clientX: number, clientY: number) => {
+    const rect = boardRef
+      .current!.querySelector("svg")!
+      .getBoundingClientRect();
+    return {
+      x: ((clientX - rect.left) / rect.width) * WORLD.width,
+      y: ((clientY - rect.top) / rect.height) * WORLD.height,
+    };
+  };
+  const hitAt = (x: number, y: number) =>
+    [...s.pieces].reverse().find((p) => hitPiece(p, x, y));
+  const preview = selected ? placementAt(s.pieces, selected.id, s.aim) : null;
   return (
-    <div className="stack-board">
+    <div className="stack-board" ref={boardRef}>
       <svg
         viewBox="0 0 800 520"
         role="img"
@@ -111,35 +138,41 @@ export function StackBoard({
             a little room for something lovely
           </text>
         )}
-        {s.pieces.map((p) => (
-          <g
-            key={p.id}
-            transform={`translate(${p.x} ${p.y}) rotate(${p.angle})`}
-            opacity={p.status === "lost" ? 0.45 : 1}
-          >
-            <IngredientShape ingredient={ingredientById(p.ingredientId)!} />
-          </g>
-        ))}
-        {selected && !s.served && !moving && s.pieces.length < 12 && (
-          <g pointerEvents="none">
-            <path
-              d={`M${s.aim} 110V${Math.min(WORLD.plateY - 20, ...s.pieces.filter((p) => onPlate(p, s.pieces)).map((p) => p.y - ingredientById(p.ingredientId)!.height / 2 - 15))}`}
-              stroke="#fff4cf"
-              strokeWidth="2"
-              strokeDasharray="5 7"
-              opacity=".7"
-            />
-            <g transform={`translate(${s.aim} 72)`} opacity=".8">
-              <IngredientShape ingredient={selected} />
+        {s.pieces
+          .filter((p) => p.id !== drag?.sourceId)
+          .map((p) => (
+            <g
+              key={p.id}
+              data-piece-id={p.id}
+              data-ingredient-id={p.ingredientId}
+              transform={`translate(${p.x} ${p.y}) rotate(${p.angle})`}
+              opacity={p.status === "lost" ? 0.45 : 1}
+            >
+              <IngredientShape ingredient={ingredientById(p.ingredientId)!} />
             </g>
-            <path
-              d={`M${s.aim - 7} 115l7 8 7-8`}
-              stroke="#746655"
-              strokeWidth="2"
-              fill="none"
-            />
-          </g>
-        )}
+          ))}
+        {selected &&
+          preview &&
+          !s.served &&
+          !moving &&
+          s.pieces.length < 12 && (
+            <g
+              pointerEvents="none"
+              transform={`translate(${preview.x} ${preview.y})`}
+              opacity=".5"
+            >
+              {selected.contours.map((points, i) => (
+                <polygon
+                  key={i}
+                  points={points.map((p) => `${p.x},${p.y}`).join(" ")}
+                  fill="none"
+                  stroke="#fff3cb"
+                  strokeWidth="2"
+                  strokeDasharray="4 4"
+                />
+              ))}
+            </g>
+          )}
         <text
           x="28"
           y="493"
@@ -165,20 +198,26 @@ export function StackBoard({
       {!s.served && (
         <button
           className="stack-drop-surface"
-          aria-label="Drop selected ingredient onto the plate"
-          disabled={!selected || moving || s.pieces.length >= 12}
+          aria-label="Place selected ingredient on the plate"
+          disabled={s.served || (moving && !drag)}
+          onPointerDown={(e) => {
+            const pos = point(e.clientX, e.clientY),
+              hit = hitAt(pos.x, pos.y);
+            if (hit) {
+              if (canLiftPiece(hit, s.pieces))
+                beginDrag(e, hit.ingredientId, hit.id);
+            } else if (selected) beginDrag(e, selected.id);
+          }}
           onPointerMove={(e) => {
-            if (e.pointerType === "touch" || moving || !selected) return;
-            const rect = e.currentTarget.getBoundingClientRect();
-            aim(((e.clientX - rect.left) / rect.width) * WORLD.width);
+            if (e.buttons || e.pointerType === "touch" || moving || !selected)
+              return;
+            aim(point(e.clientX, e.clientY).x);
           }}
           onClick={(e) => {
-            const rect = e.currentTarget.getBoundingClientRect();
-            drop(
-              e.detail
-                ? ((e.clientX - rect.left) / rect.width) * WORLD.width
-                : s.aim,
-            );
+            if (consumeClick()) return;
+            const pos = point(e.clientX, e.clientY);
+            if (e.detail && hitAt(pos.x, pos.y)) return;
+            drop(e.detail ? pos.x : s.aim);
           }}
           onKeyDown={(e) => {
             if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
@@ -188,8 +227,9 @@ export function StackBoard({
           }}
         >
           <span className="sr-only">
-            Move with left and right arrow keys; Enter or Space drops your
-            selected ingredient.
+            Move with left and right arrow keys; Enter or Space places your
+            selected ingredient just above the stack. Drag exposed pieces to
+            reposition them.
           </span>
         </button>
       )}
@@ -197,11 +237,13 @@ export function StackBoard({
         {s.served
           ? "✦ Ready to share"
           : moving
-            ? "A little wobble…"
+            ? drag
+              ? "Release over the plate to place · Escape to cancel"
+              : "Settling into place…"
             : s.pieces.length >= 12
               ? "Tray full · undo a piece or serve"
               : selected
-                ? `Holding ${selected.name} · click the worktop to drop`
+                ? `Holding ${selected.name} · drag to place, or use the placement controls`
                 : "Choose something from the tray above"}
       </div>
     </div>

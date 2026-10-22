@@ -604,3 +604,37 @@
     z-index: 8;
   }
 }
+.pantry-item {
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.pantry-item:active {
+  cursor: grabbing;
+}
+.pantry-item svg {
+  pointer-events: none;
+}
+.stack-drop-surface {
+  touch-action: none;
+  cursor: grab;
+}
+.stack-drop-surface:active {
+  cursor: grabbing;
+}
+.ingredient-in-hand {
+  position: fixed;
+  z-index: 1000;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 7px 5px #14202b4d);
+}
+.ingredient-in-hand > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.is-dragging .pantry-item {
+  cursor: grabbing;
+}

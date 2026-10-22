@@ -1,3 +1,4 @@
+import { contoursFor, contourBounds, type Contour } from "./contours";
 import { recipes } from "../../game/data";
 export type Category = "base" | "filling" | "topping";
 export interface Ingredient {
@@ -7,12 +8,8 @@ export interface Ingredient {
   width: number;
   height: number;
   color: string;
+  contours: Contour[];
 }
-const sizes: Record<Category, [number, number]> = {
-  base: [160, 70],
-  filling: [108, 30],
-  topping: [88, 22],
-};
 const colors: Record<string, string> = {
   Moonberry: "#aa75be",
   "Ember apple": "#db8c63",
@@ -26,16 +23,19 @@ const colors: Record<string, string> = {
 export const ingredients: Ingredient[] = (
   ["base", "filling", "topping"] as Category[]
 ).flatMap((category) =>
-  [...new Set(recipes.map((r) => r[category]))].map((name) => ({
-    id: `${category}:${name}`,
-    name,
-    category,
-    width:
-      name === "Crescent" ? 186 : name === "Tart" ? 174 : sizes[category][0],
-    height:
-      name === "Bun" ? 82 : name === "Cinnamon icing" ? 20 : sizes[category][1],
-    color: colors[name] ?? "#e7b77c",
-  })),
+  [...new Set(recipes.map((r) => r[category]))].map((name) => {
+    const contours = contoursFor(name, category),
+      bounds = contourBounds(contours);
+    return {
+      id: `${category}:${name}`,
+      name,
+      category,
+      width: bounds.right - bounds.left,
+      height: bounds.bottom - bounds.top,
+      color: colors[name] ?? "#e7b77c",
+      contours,
+    };
+  }),
 );
 export const ingredientById = (id: string) =>
   ingredients.find((i) => i.id === id);

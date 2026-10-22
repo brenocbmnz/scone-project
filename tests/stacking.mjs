@@ -24,11 +24,11 @@ async function choose(category, name) {
 }
 async function drop(x) {
   const board = page.getByRole("button", {
-    name: "Drop selected ingredient onto the plate",
+    name: "Place selected ingredient on the plate",
   });
   if (x === undefined)
     await page
-      .getByRole("button", { name: "Drop ingredient", exact: true })
+      .getByRole("button", { name: "Place ingredient", exact: true })
       .click();
   else {
     const rect = await board.boundingBox();
@@ -37,7 +37,7 @@ async function drop(x) {
     });
   }
   await expect(
-    page.getByRole("button", { name: "Drop ingredient", exact: true }),
+    page.getByRole("button", { name: "Place ingredient", exact: true }),
   ).toBeEnabled();
 }
 await choose("01 Dough & pastry", "Crescent");
@@ -126,16 +126,16 @@ for (const [category, name] of [
   await choose(category, name);
   if (name === "Sugar sprinkles")
     await page
-      .getByRole("button", { name: "Drop selected ingredient onto the plate" })
+      .getByRole("button", { name: "Place selected ingredient on the plate" })
       .tap();
   else {
     await page
-      .getByRole("button", { name: "Drop ingredient", exact: true })
+      .getByRole("button", { name: "Place ingredient", exact: true })
       .focus();
     await page.keyboard.press("Enter");
   }
   await expect(
-    page.getByRole("button", { name: "Drop ingredient", exact: true }),
+    page.getByRole("button", { name: "Place ingredient", exact: true }),
   ).toBeEnabled();
 }
 await expect(page.locator(".stack-score>strong")).toHaveText("3 / 3");

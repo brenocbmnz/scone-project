@@ -28,10 +28,10 @@ for (const r of [
       .getByRole("button", { name: `Pick ${name}`, exact: true })
       .click();
     await page
-      .getByRole("button", { name: "Drop ingredient", exact: true })
+      .getByRole("button", { name: "Place ingredient", exact: true })
       .click();
     await page
-      .getByRole("button", { name: "Drop ingredient", exact: true })
+      .getByRole("button", { name: "Place ingredient", exact: true })
       .waitFor({ state: "visible" });
     await page.waitForFunction(
       () => !document.querySelector(".drop-piece").disabled,
