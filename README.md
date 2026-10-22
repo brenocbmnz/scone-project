@@ -4,7 +4,7 @@ A complete, short, single-player narrative puzzle RPG prototype. You are Rowan, 
 
 ## Run locally
 
-Requires Node.js 20.19+ or 22.12+.
+Requires Node.js 22.12+ (22.x), 24.x, or 26+ for the current test tooling.
 
 ```sh
 npm install
@@ -21,19 +21,19 @@ npm run preview
 
 ## How to play
 
-Start a story, read the introduction, and bake two orders. Select a base, filling, and finishing ingredient matching the recipe; start and stop the oven in the green zone; add decorations and serve. Every result pays. The recipes rotate across days.
+Start a story, read the introduction, then click the cash register in the illustrated bakery to open service. Bake two orders. Select a base, filling, and finishing ingredient matching the recipe; start and stop the oven in the green zone; add decorations and serve. Every result pays. The recipes rotate across days.
 
-Each afternoon has **one** activity: spend time with Orin or Lucien, or visit one of three town locations. At a location, inspect objects for coins, investigate a puzzle, and return home. Visits consume the afternoon immediately, but you can inspect all objects and retry puzzles during that visit. The tower and library mysteries complete the two journal quests. The square has a third deduction puzzle. Hints cost a separate coin; each puzzle offers three. Inspect objects and ask a neighbor for one daily coin to replenish them.
+After your two customers, the bakery becomes interactive again. Click the front door to visit town or click an NPC portrait in the room to start a conversation. Each afternoon has **one** activity: spend time with Orin or Lucien, or visit one of three town locations. At a location, inspect objects for coins, investigate a puzzle, and return home. Visits consume the afternoon immediately, but you can inspect all objects and retry puzzles during that visit. The tower and library mysteries complete the two journal quests. The square has a third deduction puzzle. Hints cost a separate coin; each puzzle offers three. Inspect objects and ask a neighbor for one daily coin to replenish them.
 
-In the evening, buy upgrades on the bakery screen, review your journal, or go to bed. Two good batches and occasional puzzle rewards fund steady progress. Four upgrades bring the bakery to level 5 and add per-order bonuses.
+In the evening, click the enchanted oven to buy upgrades, review your journal from the HUD, or click the illustrated bed to advance the day. Two good batches and occasional puzzle rewards fund steady progress. Four upgrades bring the bakery to level 5 and add per-order bonuses.
 
-Relationships have five levels. Explicit date/kiss choices express romantic interest; friendship alone never starts romance. Orin stops at level 3 until the bell quest is complete. A romantic visit at level 5 completes a heart event. When a level-5 bakery and completed romantic route align, an optional evening choice schedules that character’s ending for the next morning. Bed always remains available. Both routes can be eligible independently.
+Relationships have five levels. Explicit date/kiss choices express romantic interest; friendship alone never starts romance. Orin stops at level 3 until the bell quest is complete. A romantic visit at level 5 completes a heart event. When a level-5 bakery and completed romantic route align, an optional evening NPC marker schedules that character’s ending for the next morning. Bed always remains available. Both routes can be eligible independently.
 
 ## Saves and controls
 
-Actions automatically save to browser localStorage. Settings & save (or the save icon in the top bar) writes a separate manual slot. “Load saved chapter” prefers that manual slot; Continue resumes the current automatic story. Save manually before choosing an ending to preserve an earlier chapter. Reset requires confirmation and keeps the manual save. Save formats are versioned and malformed or unsupported records fall back to a fresh story.
+Actions automatically save to browser localStorage, including the current location, opening beat, and relationship dialogue beat. Saves from the first iteration load with a default bakery scene. Settings & save (or the save icon in the top bar) writes a separate manual slot. “Load saved chapter” prefers that manual slot; Continue resumes the current automatic story. Save manually before choosing an ending to preserve an earlier chapter. Reset requires confirmation and keeps the manual save. Save formats are versioned and malformed or unsupported records fall back to a fresh story.
 
-All actions use keyboard-accessible native controls; bell placement uses buttons instead of dragging. Escape dismisses activity dialogs. Animations respect reduced motion. Small screens use bottom navigation. Typography uses optional Google Fonts with system fallbacks. No game artwork is downloaded.
+All actions use keyboard-accessible native controls; bell placement uses buttons instead of dragging. Number keys 1–6 select the corresponding visible story choice. Enter or Space advances a Continue beat when a button is not already focused. Tab and Enter work on every action. Escape dismisses overlays; overlay focus is trapped and restored. Animations respect reduced motion. Small screens use a compact floating menu rail. Typography uses optional Google Fonts with system fallbacks. No game artwork is downloaded.
 
 Development builds expose Settings → Developer tools to add money/hint coins or unlock both endings. These controls are excluded from production builds.
 
@@ -47,7 +47,11 @@ Development builds expose Settings → Developer tools to add money/hint coins o
 - `src/minigames/Puzzle.tsx`: shared puzzle shell, retries, hints, rewards, plus three interaction types.
 - `src/components/Art.tsx`: original replaceable SVG backgrounds, portraits, and pastry art.
 - `src/App.tsx`: navigation, scene composition, activity dialogs, menus, and ending scenes.
-- `src/components/BakeryDashboard.tsx` and `GameViews.tsx`: bakery, town, journal, relationships, recipe book, and upgrade screens.
+- `src/components/novel/`: illustrated scene staging, character sprites, the dialogue/action dock, accessible overlay focus management, and the system menu.
+- `src/game/scenes.ts`: scene identities, authored opening beats, daily narration, and the saved scene cursor.
+- `src/game/bakeryRoom.ts`: normalized room hit regions, object descriptions, service start rules, and phase guards.
+- `src/components/novel/BakeryRoom.tsx`: original illustrated room and mouse/touch/keyboard object interactions.
+- `src/components/GameViews.tsx`: quest journal, relationships, recipe book, and upgrade overlays.
 - `src/style.css`: responsive presentation and reduced-motion rules.
 - `src/game/rules.test.ts`: economy, immutable transitions, daily activity limits, prerequisites, endings, hints, puzzle solution verification, and save handling.
 
@@ -57,14 +61,34 @@ Add recipes to `recipes`, keeping base/filling/topping names distinct; the ingre
 
 Dialogue and heart events are intentionally brief. Baking uses three stylized SVG pastry illustrations. There are no audio assets yet. Quest advancement is a single puzzle milestone per quest; adding larger quest graphs and longer dialogue trees is the next architectural step. Progression rules are modular, while scene orchestration remains in App. Saves are local to this browser and are not cloud-synced.
 
-## Browser checks
+## Interactive bakery and visual novel presentation
 
-With `npm run dev` running in another terminal:
+The bakery is a clickable SVG room, with large hit regions aligned to the illustrated objects. Mouse, touch, and keyboard focus all use the same native buttons; “Show interactions” reveals object labels. The original artwork is replaceable, with normalized object positions and hit regions in `src/game/bakeryRoom.ts`.
+
+- **Cash register:** start the work day, or resume service without resetting orders.
+- **Oven:** bake during active service; otherwise inspect bakery improvements. Purchases are available in the evening.
+- **Mixing table:** prepare an active customer order, or browse recipes while off duty.
+- **Recipe shelf:** open the recipe book.
+- **Front door:** leave for town during your one free afternoon activity. It explains the phase requirement at other times.
+- **Bed:** sleep in the evening. Earlier visits explain what remains to do.
+- **Orin / Lucien portraits:** begin a bakery conversation in the afternoon. Completing the friendship/date choice consumes that day’s activity; politely leaving the conversation does not. Eligible evening portraits schedule the optional ending for tomorrow.
+
+Conversations use a coral, angled speaker tab, a dark bottom dialogue panel, and floating blue-text choices inspired by the supplied visual novel reference. Original placeholder characters and scenery remain independent of the reference artwork. Returning from work or a completed activity restores the clickable room. Cooking and puzzles retain their own accessible overlays.
+
+The saved work-start flag prevents payouts before opening the register. Service progress, current room, location, and dialogue beat persist across reloads; older saves receive compatible defaults. Daily work, one afternoon activity, economy, puzzles, route prerequisites, and optional endings remain action-based. Audio is not implemented.
+
+## Browser checks
 
 ```sh
 npx playwright install chromium
-node tests/smoke.mjs
-node tests/routes.mjs
+npm run test:browser
 ```
 
-The first check plays two full baking sessions, explores, buys a hint, solves the tower puzzle, buys an upgrade, saves, sleeps, reloads, and checks a mobile viewport. The second exercises the other two puzzles, relationship gating, explicit romance, both scheduled endings, and recovery of an earlier manual save. Screenshots are written to `artifacts/`. Unit tests also simulate a complete five-day route using normal economy rules.
+The browser runner starts its own Vite server on port 4175, runs all four checks, then stops that server. Port 5173 can keep serving your development game.
+
+- `tests/smoke.mjs`: two complete baking sessions, exploration, hints, tower puzzle, quest reward, upgrade, save, sleep, reload, and mobile overflow.
+- `tests/routes.mjs`: the other two puzzles, quest-gated relationship, explicit romance, both scheduled endings, and earlier-save recovery.
+- `tests/novel.mjs`: numbered choices, opening/conversation save resume, overlay focus trapping and Escape, friendship choice, mobile settings, and mobile cooking.
+- `tests/room.mjs`: actual illustrated appliance hit regions, register gating/resume, room NPC conversations, afternoon restrictions, bed progression, and mobile keyboard interactions.
+
+Screenshots are written to `artifacts/`. Unit tests also simulate a complete five-day route using normal economy rules and verify compatibility with the first iteration’s saves. GitHub Actions runs unit checks, TypeScript/build, and browser checks on pushes and pull requests; it does not deploy.

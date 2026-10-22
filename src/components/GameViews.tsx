@@ -152,6 +152,12 @@ export function BakeryUpgrades() {
         </div>
         <span>Bakery level {g.level} / 5</span>
       </div>
+      {g.phase !== "evening" && (
+        <p className="muted">
+          Browse now; improvements can be purchased in the evening after your
+          afternoon activity.
+        </p>
+      )}
       <div className="upgrade-grid">
         {upgrades.map((u, i) => (
           <article key={u.name} className={g.level > i + 1 ? "purchased" : ""}>
@@ -159,7 +165,9 @@ export function BakeryUpgrades() {
             <h3>{u.name}</h3>
             <p>{u.description}</p>
             <button
-              disabled={g.level !== i + 1 || g.money < u.cost}
+              disabled={
+                g.phase !== "evening" || g.level !== i + 1 || g.money < u.cost
+              }
               onClick={() => update(upgrade)}
             >
               {g.level > i + 1 ? "✓ Purchased" : `${u.cost} coins · Upgrade`}
@@ -168,52 +176,5 @@ export function BakeryUpgrades() {
         ))}
       </div>
     </section>
-  );
-}
-
-export function TownMap({ onVisit }: { onVisit: (index: number) => void }) {
-  const { game: g } = useGame();
-  return (
-    <>
-      <div className="section-heading">
-        <h2>Choose a little adventure</h2>
-        <span className="status-pill">
-          {g.phase === "free" ? "1 ACTIVITY AVAILABLE" : "FREE TIME ONLY"}
-        </span>
-      </div>
-      <div className="location-grid">
-        {locations.map((l, i) => (
-          <article className="location-card" key={l.name}>
-            <div className={"location-art loc-" + i}>
-              <span>{l.icon}</span>
-              <i>✧</i>
-              <b>☾</b>
-            </div>
-            <div className="location-copy">
-              <h2>{l.name}</h2>
-              <p>{l.description}</p>
-              <span className="eyebrow">
-                {g.solved.includes(l.puzzle)
-                  ? "MYSTERY SOLVED"
-                  : "A MYSTERY AWAITS"}
-              </span>
-              <button
-                className="primary full"
-                disabled={g.phase !== "free"}
-                onClick={() => {
-                  onVisit(i);
-                }}
-              >
-                Visit {l.name} <ArrowUpRight size={16} />
-              </button>
-            </div>
-          </article>
-        ))}
-      </div>
-      <p className="muted">
-        Visits use your one free-time activity. You can examine every object at
-        your chosen location before heading home.
-      </p>
-    </>
   );
 }

@@ -1,3 +1,4 @@
+import { startWork } from "./bakeryRoom";
 import { describe, it, expect } from "vitest";
 import {
   initial,
@@ -16,10 +17,10 @@ import { puzzles } from "./data";
 describe("bakery economy and daily progression", () => {
   it("pays every quality tier and permits exactly two orders", () => {
     for (let score = 0; score <= 3; score++) {
-      const s = bake(initial(), score);
+      const s = bake(startWork(initial()), score);
       expect(s.money).toBe(37 + score * 4);
     }
-    const s = bake(bake(initial(), 2), 1);
+    const s = bake(bake(startWork(initial()), 2), 1);
     expect(s.phase).toBe("free");
     expect(bake(s, 3)).toBe(s);
   });
@@ -148,7 +149,7 @@ describe("complete prototype storyline", () => {
   it("reaches a chosen ending through normal five-day play", () => {
     let s: Progress = { ...initial(), started: true };
     for (let day = 1; day <= 5; day++) {
-      s = bake(bake(s, 3), 3);
+      s = bake(bake(startWork(s), 3), 3);
       if (day === 1) s = { ...solve(s, "bells"), phase: "evening" };
       else s = spendTime(s, "orin", true);
       s = upgrade(s);
