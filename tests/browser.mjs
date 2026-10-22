@@ -39,6 +39,7 @@ try {
     "room",
     "stacking",
     "dragging",
+    "presentation",
   ]) {
     const child = spawn(process.execPath, [`tests/${script}.mjs`], {
       stdio: "inherit",
