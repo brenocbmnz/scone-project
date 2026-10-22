@@ -12,6 +12,7 @@ export function visitLocation(s: Progress, index: number): Progress {
   return {
     ...s,
     phase: "evening",
+    scene: { ...s.scene, screen: "village", visit: index, talk: null, beat: 0 },
     flags: [...new Set([...s.flags, ...rumors])],
   };
 }

@@ -1,7 +1,9 @@
+import { initialScene, type SceneProgress } from "./scenes";
 import { type Npc, upgrades, puzzles, quests } from "./data";
 export type Phase = "work" | "free" | "evening" | "ending";
 export interface Progress {
   version: 1;
+  scene: SceneProgress;
   started: boolean;
   day: number;
   phase: Phase;
@@ -22,6 +24,7 @@ export interface Progress {
 }
 export const initial = (): Progress => ({
   version: 1,
+  scene: initialScene(),
   started: false,
   day: 1,
   phase: "work",
@@ -103,6 +106,7 @@ export function sleep(s: Progress): Progress {
     : {
         ...s,
         day: s.day + 1,
+        scene: initialScene(),
         orders: 0,
         phase: s.scheduled ? "ending" : "work",
       };
@@ -165,7 +169,21 @@ export function parseSave(raw: string | null): Progress | null {
       (s.phase === "ending" && !s.scheduled)
     )
       return null;
-    return s;
+    const scene = { ...initialScene(), ...(v.scene as object) };
+    if (
+      !["home", "village"].includes(scene.screen) ||
+      ![null, 0, 1, 2].includes(scene.visit) ||
+      ![null, "orin", "lucien"].includes(scene.talk) ||
+      !integer(scene.beat, 0, 1) ||
+      ![null, 0, 1, 2].includes(scene.intro)
+    )
+      return null;
+    if (
+      (scene.visit !== null && s.phase !== "evening") ||
+      (scene.talk !== null && s.phase !== "free")
+    )
+      return null;
+    return { ...s, scene };
   } catch {
     return null;
   }

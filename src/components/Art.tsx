@@ -3,6 +3,7 @@ export function BakeryArt() {
     <svg
       className="bakery-art"
       viewBox="0 0 1000 570"
+      preserveAspectRatio="xMidYMid slice"
       role="img"
       aria-label="A cozy magical bakery with a glowing oven, hanging herbs, and crescent pastries"
     >
