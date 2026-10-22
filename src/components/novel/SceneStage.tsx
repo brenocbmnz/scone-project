@@ -1,7 +1,8 @@
+import { useEffect, useState } from "react";
 import { BakeryRoomArt } from "./BakeryRoom";
 import type { SceneId } from "../../game/scenes";
 import type { Npc } from "../../game/data";
-export type Actor = Npc | "customer";
+export type Actor = Npc | "customer" | "rowan";
 function VillageArt({ scene }: { scene: SceneId }) {
   const library = scene === "library";
   const tower = scene === "tower";
@@ -309,6 +310,7 @@ function VillageArt({ scene }: { scene: SceneId }) {
   );
 }
 export function CharacterSprite({ actor }: { actor: Actor }) {
+  if (actor === "rowan") return <RowanSprite />;
   const orin = actor === "orin",
     customer = actor === "customer";
   const skin = orin ? "#a9b9ad" : customer ? "#c7b0d4" : "#cfb4cf";
@@ -523,19 +525,123 @@ export function CharacterSprite({ actor }: { actor: Actor }) {
     </svg>
   );
 }
+function RowanSprite() {
+  return (
+    <svg
+      className="character-sprite actor-rowan"
+      viewBox="0 0 420 650"
+      role="img"
+      aria-label="Rowan, the baker, lost in thought"
+    >
+      <defs>
+        <linearGradient id="rowan-apron" x2="1" y2="1">
+          <stop stopColor="#dfad7e" />
+          <stop offset="1" stopColor="#a76155" />
+        </linearGradient>
+      </defs>
+      <g stroke="#302a39" strokeWidth="4" strokeLinejoin="round">
+        <path
+          d="M88 650L77 411Q81 332 158 305H263Q337 332 346 411L334 650"
+          fill="#6b8076"
+        />
+        <path d="M159 298L156 337Q206 376 262 335L258 287" fill="#c58b6a" />
+        <path
+          d="M147 323L131 374L160 398L184 350M265 322L286 371L260 400L235 350"
+          fill="#a7b8a0"
+        />
+        <path
+          d="M145 352L164 361L157 401H264L255 357L273 348L295 650H121Z"
+          fill="url(#rowan-apron)"
+        />
+        <path d="M165 489H256V555Q210 579 165 555Z" fill="#c18c68" />
+        <path
+          d="M168 175Q139 144 130 184Q123 219 153 230M273 175Q299 149 302 188Q304 215 279 228"
+          fill="#d6a27d"
+        />
+        <path
+          d="M148 150Q208 109 278 153L278 230Q269 283 216 303Q160 283 148 231Z"
+          fill="#dfaf8a"
+        />
+        <path
+          d="M145 204Q119 172 137 128L121 116L151 110Q148 76 194 86Q230 53 259 93Q293 87 300 129L286 185L269 162L267 132Q238 160 196 137L177 168L159 157Z"
+          fill="#61433e"
+        />
+        <path
+          d="M163 185Q179 176 195 185M232 184Q250 177 265 187"
+          fill="none"
+          strokeWidth="5"
+        />
+        <path
+          d="M168 203Q180 210 191 201M237 202Q249 209 259 200"
+          fill="none"
+        />
+        <path
+          d="M211 205L202 230L215 234M192 256Q212 267 233 252"
+          fill="none"
+          stroke="#9a6155"
+          strokeWidth="3"
+        />
+        <path
+          d="M181 271L197 282L216 286L238 273"
+          fill="none"
+          stroke="#895b4d"
+          strokeWidth="3"
+        />
+        <path
+          d="M91 444Q112 403 142 421L181 465L219 308Q230 280 249 294Q270 307 252 337L235 506Q219 552 186 524Z"
+          fill="#dfaf8a"
+        />
+        <path d="M91 444L123 422L153 451L122 480Z" fill="#91a18c" />
+        <path
+          d="M219 308L237 327M228 297L246 316"
+          fill="none"
+          stroke="#ac785e"
+          strokeWidth="2"
+        />
+      </g>
+      <g fill="#fff3db" opacity=".6">
+        <ellipse cx="180" cy="413" rx="10" ry="4" />
+        <circle cx="206" cy="448" r="4" />
+        <circle cx="153" cy="586" r="6" />
+      </g>
+    </svg>
+  );
+}
+
 export function SceneStage({
   scene,
   actor,
+  companion,
 }: {
   scene: SceneId;
   actor?: Actor;
+  companion?: Actor;
 }) {
+  const [previous, setPrevious] = useState(scene);
+  useEffect(() => {
+    const timer = setTimeout(() => setPrevious(scene), 260);
+    return () => clearTimeout(timer);
+  }, [scene]);
   return (
     <div className={"scene-stage scene-" + scene}>
+      {previous !== scene && (
+        <div className="scene-backdrop departing" aria-hidden="true">
+          {previous === "bakery" ? (
+            <BakeryRoomArt />
+          ) : (
+            <VillageArt scene={previous} />
+          )}
+        </div>
+      )}
       <div className="scene-backdrop" key={scene}>
         {scene === "bakery" ? <BakeryRoomArt /> : <VillageArt scene={scene} />}
       </div>
       <div className="scene-vignette" />
+      {companion && companion !== actor && (
+        <div className="scene-companion">
+          <CharacterSprite actor={companion} />
+        </div>
+      )}
       {actor && <CharacterSprite key={actor} actor={actor} />}
       <div className="ambient-motes" aria-hidden="true">
         {[0, 1, 2, 3, 4, 5].map((i) => (

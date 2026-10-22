@@ -21,7 +21,7 @@ npm run preview
 
 ## How to play
 
-Start a story, read the introduction, then click the cash register in the illustrated bakery to open service. Bake two orders. Select a base, filling, and finishing ingredient matching the recipe; start and stop the oven in the green zone; add decorations and serve. Every result pays. The recipes rotate across days.
+Start a story, read the introduction, then click the cash register in the illustrated bakery to open service. Prepare two orders by stacking ingredients on the plate. Pick from the Dough & pastry, Fillings & icing, and Toppings tabs; click and drag an ingredient from its tray onto the plate, then release it where you want it to rest. Exposed ingredients can be picked up and repositioned. Releasing outside the worktop or pressing Escape cancels the drag. Keep each layer supported by the plate or another ingredient. The recipe checklist shows what to use and checks off correct pieces as they settle. One point is awarded per requested ingredient still standing when you serve, capped at the listed quantity. Extra or incorrect pieces do not add points. Every result pays, even if something tumbles off. Four recipes rotate across days, including a cinnamon roll.
 
 After your two customers, the bakery becomes interactive again. Click the front door to visit town or click an NPC portrait in the room to start a conversation. Each afternoon has **one** activity: spend time with Orin or Lucien, or visit one of three town locations. At a location, inspect objects for coins, investigate a puzzle, and return home. Visits consume the afternoon immediately, but you can inspect all objects and retry puzzles during that visit. The tower and library mysteries complete the two journal quests. The square has a third deduction puzzle. Hints cost a separate coin; each puzzle offers three. Inspect objects and ask a neighbor for one daily coin to replenish them.
 
@@ -31,9 +31,9 @@ Relationships have five levels. Explicit date/kiss choices express romantic inte
 
 ## Saves and controls
 
-Actions automatically save to browser localStorage, including the current location, opening beat, and relationship dialogue beat. Saves from the first iteration load with a default bakery scene. Settings & save (or the save icon in the top bar) writes a separate manual slot. “Load saved chapter” prefers that manual slot; Continue resumes the current automatic story. Save manually before choosing an ending to preserve an earlier chapter. Reset requires confirmation and keeps the manual save. Save formats are versioned and malformed or unsupported records fall back to a fresh story.
+Actions automatically save to browser localStorage, including the current location, opening beat, relationship dialogue beat, and unfinished ingredient stack. Saves from the first iteration load with a default bakery scene. Settings & save (or the save icon in the top bar) writes a separate manual slot. “Load saved chapter” prefers that manual slot; Continue resumes the current automatic story. Save manually before choosing an ending to preserve an earlier chapter. Reset requires confirmation and keeps the manual save. Save formats are versioned and malformed or unsupported records fall back to a fresh story.
 
-All actions use keyboard-accessible native controls; bell placement uses buttons instead of dragging. Number keys 1–6 select the corresponding visible story choice. Enter or Space advances a Continue beat when a button is not already focused. Tab and Enter work on every action. Escape dismisses overlays; overlay focus is trapped and restored. Animations respect reduced motion. Small screens use a compact floating menu rail. Typography uses optional Google Fonts with system fallbacks. No game artwork is downloaded.
+All actions use keyboard-accessible native controls; bell placement uses buttons instead of dragging. In the stacking minigame, choose an ingredient, use the placement slider or the board’s Left/Right keys, then press Place ingredient or Enter/Space on the board. Keyboard placement starts just above the target surface. Touch players can drag directly or select and tap the worktop. Undo and Clear allow correction. Cooking has no timer; hidden tabs pause the fall animation. Close/reopen or reload to resume an unfinished stack or uncollected result. Number keys 1–6 select the corresponding visible story choice. Enter or Space advances a Continue beat when a button is not already focused. Tab and Enter work on every action. Escape dismisses overlays; overlay focus is trapped and restored. Animations respect reduced motion. Small screens use a compact floating menu rail. Typography uses optional Google Fonts with system fallbacks. No game artwork is downloaded.
 
 Development builds expose Settings → Developer tools to add money/hint coins or unlock both endings. These controls are excluded from production builds.
 
@@ -43,7 +43,8 @@ Development builds expose Settings → Developer tools to add money/hint coins o
 - `src/game/rules.ts`: immutable economy, daily progression, relationship gating, quest rewards, hints, ending eligibility, and save parsing.
 - `src/game/store.ts` and `persistence.ts`: Zustand state and separate automatic/manual persistence, with storage failure handling.
 - `src/game/conditions.ts`, `dialogue.ts`, and `exploration.ts`: shared prerequisite evaluation, authored branching relationship events, and discovery rules.
-- `src/minigames/Baking.tsx`: independent three-stage cooking interaction; replaceable without changing payout rules.
+- `src/minigames/Baking.tsx`: ingredient pantry tabs, interactive stacking board, recipe checklist, and scored serving screen.
+- `src/minigames/stacking/`: shared ingredient contours/art, silhouette contact profiles, pointer-captured mouse/touch dragging, immutable gravity and support rules, scoring, draft validation, animation/persistence hooks, and dedicated styling.
 - `src/minigames/Puzzle.tsx`: shared puzzle shell, retries, hints, rewards, plus three interaction types.
 - `src/components/Art.tsx`: original replaceable SVG backgrounds, portraits, and pastry art.
 - `src/App.tsx`: navigation, scene composition, activity dialogs, menus, and ending scenes.
@@ -55,11 +56,11 @@ Development builds expose Settings → Developer tools to add money/hint coins o
 - `src/style.css`: responsive presentation and reduced-motion rules.
 - `src/game/rules.test.ts`: economy, immutable transitions, daily activity limits, prerequisites, endings, hints, puzzle solution verification, and save handling.
 
-Add recipes to `recipes`, keeping base/filling/topping names distinct; the ingredient UI derives its options from those definitions. Add puzzle definitions with three ordered hints and a verified answer, and implement a corresponding interaction in `PuzzleInputs.tsx`, selected by the shared `Puzzle.tsx` shell. Add a location referencing that puzzle. Add quests with an objective, location, and reward; reference its puzzle ID; `solve` derives quest completion flags from the definitions. Add dialogue events to `dialogue.ts` with ordered prerequisite conditions; the last eligible event is selected. Event IDs and explicit date choices are remembered in persistent flags. Upgrades are sequential definitions; bonuses derive from bakery level. Replace the SVG art components to introduce commissioned assets without changing game logic.
+Add recipes to `recipes`, keeping base/filling/topping names distinct; pantry tabs and the three-item checklist derive from those definitions. Ingredient IDs include their category. Add new silhouettes in `stacking/contours.ts`; art and collision dimensions both derive from these contours. Add decorative strokes/highlights in `IngredientArt.tsx` without changing contact geometry. `requirementsFor` currently requests one of each recipe component; its count field and scoring support larger quantities. Add puzzle definitions with three ordered hints and a verified answer, and implement a corresponding interaction in `PuzzleInputs.tsx`, selected by the shared `Puzzle.tsx` shell. Add a location referencing that puzzle. Add quests with an objective, location, and reward; reference its puzzle ID; `solve` derives quest completion flags from the definitions. Add dialogue events to `dialogue.ts` with ordered prerequisite conditions; the last eligible event is selected. Event IDs and explicit date choices are remembered in persistent flags. Upgrades are sequential definitions; bonuses derive from bakery level. Replace the SVG art components to introduce commissioned assets without changing game logic.
 
 ## Prototype limits
 
-Dialogue and heart events are intentionally brief. Baking uses three stylized SVG pastry illustrations. There are no audio assets yet. Quest advancement is a single puzzle milestone per quest; adding larger quest graphs and longer dialogue trees is the next architectural step. Progression rules are modular, while scene orchestration remains in App. Saves are local to this browser and are not cloud-synced.
+Dialogue and heart events are intentionally brief. Baking uses original SVG ingredient pieces and four pastry bases. Its gentle 2D stacking uses the same sampled outlines for rendering, picking, and contact detection, including curved surfaces and multi-part toppings. It supports sliding overhangs, but it is not a full rigid-body physics simulation. There are no audio assets yet. Quest advancement is a single puzzle milestone per quest; adding larger quest graphs and longer dialogue trees is the next architectural step. Progression rules are modular, while scene orchestration remains in App. Saves are local to this browser and are not cloud-synced.
 
 ## Interactive bakery and visual novel presentation
 
@@ -84,11 +85,13 @@ npx playwright install chromium
 npm run test:browser
 ```
 
-The browser runner starts its own Vite server on port 4175, runs all four checks, then stops that server. Port 5173 can keep serving your development game.
+The browser runner starts its own Vite server on port 4175, runs all six checks, then stops that server. Port 5173 can keep serving your development game.
 
 - `tests/smoke.mjs`: two complete baking sessions, exploration, hints, tower puzzle, quest reward, upgrade, save, sleep, reload, and mobile overflow.
 - `tests/routes.mjs`: the other two puzzles, quest-gated relationship, explicit romance, both scheduled endings, and earlier-save recovery.
 - `tests/novel.mjs`: numbered choices, opening/conversation save resume, overlay focus trapping and Escape, friendship choice, mobile settings, and mobile cooking.
 - `tests/room.mjs`: actual illustrated appliance hit regions, register gating/resume, room NPC conversations, afternoon restrictions, bed progression, and mobile keyboard interactions.
+- `tests/stacking.mjs`: placement and falls, correct ingredient scoring, duplicate caps, wrong ingredients, undo, draft/result resume, exactly-once payments, cinnamon rolls, and mobile input.
+- `tests/dragging.mjs`: real mouse and native touch drags, release-height placement, visible silhouette contact, cancellation, exposed-piece repositioning, save/resume, and mobile play.
 
 Screenshots are written to `artifacts/`. Unit tests also simulate a complete five-day route using normal economy rules and verify compatibility with the first iteration’s saves. GitHub Actions runs unit checks, TypeScript/build, and browser checks on pushes and pull requests; it does not deploy.

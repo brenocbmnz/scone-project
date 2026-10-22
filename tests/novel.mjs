@@ -72,7 +72,7 @@ await page
   .click();
 await page.getByRole("button", { name: /Let’s get baking/ }).click();
 await expect(
-  page.getByRole("button", { name: "Crescent", exact: true }),
+  page.getByRole("button", { name: "Pick Crescent", exact: true }),
 ).toBeVisible();
 await page.screenshot({
   path: "artifacts/novel-baking-mobile.png",

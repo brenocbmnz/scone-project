@@ -14,6 +14,24 @@ export function GameOverlay({
   const ref = useRef<HTMLElement>(null);
   const closeRef = useRef(onClose);
   closeRef.current = onClose;
+  const exiting = useRef(false);
+  const exitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const requestClose = () => {
+    if (exiting.current) return;
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      closeRef.current();
+      return;
+    }
+    exiting.current = true;
+    ref.current?.parentElement?.classList.add("overlay-exiting");
+    exitTimer.current = setTimeout(() => {
+      exiting.current = false;
+      ref.current?.parentElement?.classList.remove("overlay-exiting");
+      closeRef.current();
+    }, 110);
+  };
+  const requestCloseRef = useRef(requestClose);
+  requestCloseRef.current = requestClose;
   useEffect(() => {
     const prev = document.activeElement as HTMLElement | null;
     const box = ref.current;
@@ -24,14 +42,17 @@ export function GameOverlay({
       if (e.key === "Escape") {
         e.preventDefault();
         e.stopPropagation();
-        closeRef.current();
+        requestCloseRef.current();
       }
       if (e.key === "Tab") {
         const controls = [
           ...box!.querySelectorAll<HTMLElement>(
-            'button:not(:disabled),input,summary,[tabindex="0"]',
+            'button:not(:disabled),input:not(:disabled),summary,[tabindex="0"]:not(:disabled)',
           ),
-        ];
+        ].filter(
+          (control) =>
+            control.tabIndex >= 0 && control.getClientRects().length > 0,
+        );
         const first = controls[0],
           last = controls.at(-1);
         if (
@@ -54,6 +75,7 @@ export function GameOverlay({
     document.addEventListener("keydown", handle);
     return () => {
       document.removeEventListener("keydown", handle);
+      if (exitTimer.current) clearTimeout(exitTimer.current);
       if (prev?.isConnected) prev.focus();
     };
   }, []);
@@ -61,7 +83,7 @@ export function GameOverlay({
     <div
       className="overlay"
       onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        if (e.target === e.currentTarget) requestClose();
       }}
     >
       <section
@@ -76,7 +98,7 @@ export function GameOverlay({
           <button
             className="icon-button"
             aria-label={`Close ${title}`}
-            onClick={onClose}
+            onClick={requestClose}
           >
             <X size={21} />
           </button>

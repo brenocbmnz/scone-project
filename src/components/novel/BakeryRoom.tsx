@@ -359,7 +359,7 @@ export function BakeryRoom({
           return (
             <button
               key={key}
-              className="room-target"
+              className={"room-target" + (npc ? " npc-target" : "")}
               style={{
                 left: `${region.left}%`,
                 top: `${region.top}%`,

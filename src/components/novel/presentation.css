@@ -1,0 +1,420 @@
+/* Scene presentation: short, cancellable visual feedback; game state updates immediately. */
+:root {
+  --vn-ink: #202038;
+  --vn-paper: #fff0d3;
+  --vn-coral: #ff877e;
+  --vn-mint: #c2e5cf;
+}
+@keyframes vn-in {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+}
+.scene-backdrop {
+  animation: backdrop-in 260ms ease-out both;
+}
+.scene-backdrop.departing {
+  animation: none;
+}
+@keyframes backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.character-sprite {
+  animation: actor-enter 240ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes actor-enter {
+  from {
+    opacity: 0;
+    translate: -18px 8px;
+  }
+  to {
+    opacity: 1;
+    translate: 0;
+  }
+}
+.dialogue-mode .character-sprite {
+  right: 37%;
+  height: 91%;
+  bottom: -38px;
+  max-width: 48%;
+  filter: drop-shadow(8px 7px 0 #20203844);
+}
+.dialogue-mode .actor-rowan {
+  right: 39%;
+}
+.dialogue-dock {
+  width: min(88%, 1240px);
+  margin-bottom: 34px;
+  min-height: 168px;
+  background: #fff0d3fa;
+  border: 3px solid var(--vn-ink);
+  border-top: 7px solid var(--vn-coral);
+  padding: 26px 30px 12px;
+  box-shadow: 7px 7px 0 #202038a8;
+  color: var(--vn-ink);
+}
+.speaker-plaque {
+  left: 26px;
+  transform: rotate(-2deg);
+  min-width: 160px;
+  font-size: 21px;
+  top: -34px;
+  box-shadow: 4px 4px 0 var(--vn-ink);
+  border: 3px solid var(--vn-ink);
+  padding: 7px 24px;
+  background: var(--vn-coral);
+  color: var(--vn-ink);
+}
+.thought-dialogue {
+  border-top-color: var(--vn-mint);
+}
+.thought-dialogue .speaker-plaque {
+  background: var(--vn-mint);
+}
+.story-copy {
+  animation: vn-in 160ms ease-out both;
+  min-height: 80px;
+}
+.story-copy > .eyebrow {
+  text-align: left;
+  color: #79645e;
+  font-size: 9px;
+  font-weight: 700;
+  margin: 0 0 9px;
+}
+.story-line {
+  display: block;
+  width: 100%;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
+  text-align: left;
+  color: var(--vn-ink);
+  font-size: clamp(16px, 1.45vw, 21px);
+  line-height: 1.55;
+  font-weight: 500;
+  cursor: pointer;
+}
+.story-line:hover:not(:disabled) {
+  transform: none;
+  background: none;
+  border: 0;
+  color: var(--vn-ink);
+  box-shadow: none;
+}
+.line-layout {
+  display: block;
+  position: relative;
+  color: transparent;
+}
+.line-reveal {
+  position: absolute;
+  inset: 0;
+  color: var(--vn-ink);
+}
+.text-cursor {
+  display: inline;
+  margin-left: 8px;
+  color: #bb635d;
+  font-size: 12px;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.dialogue-tools {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  border-top: 1px solid #20203825;
+  margin-top: 16px;
+  padding-top: 9px;
+  color: #75635e;
+}
+.dialogue-tools > span {
+  margin-right: auto;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+}
+.dialogue-tools button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: transparent;
+  border: 0;
+  color: #645961;
+  font-size: 10px;
+  padding: 3px;
+  min-height: 24px;
+}
+.story-actions,
+.story-actions.many-actions {
+  right: -1%;
+  bottom: calc(100% + 28px);
+  width: 41%;
+  gap: 9px;
+}
+.story-choice,
+.story-choice.primary,
+.story-choice.romance {
+  background: var(--vn-ink);
+  color: var(--vn-paper);
+  border: 2px solid var(--vn-paper);
+  box-shadow: 4px 4px 0 #20203888;
+  min-height: 51px;
+  padding: 11px 16px;
+  transform: rotate(-1deg);
+  animation: choice-enter 180ms ease-out both;
+  transition:
+    background 100ms,
+    color 100ms,
+    translate 100ms,
+    box-shadow 100ms;
+}
+@keyframes choice-enter {
+  from {
+    opacity: 0;
+    translate: 16px 0;
+  }
+  to {
+    opacity: 1;
+    translate: 0;
+  }
+}
+.story-choice strong {
+  font-weight: 700;
+  font-size: 15px;
+}
+.story-choice .choice-number {
+  color: #e8c8a5 !important;
+  font-size: 10px;
+}
+.story-choice small {
+  color: #d9c4bd;
+  font-size: 10px;
+}
+.story-choice.romance {
+  border-color: #ffafba;
+}
+.story-choice:hover:not(:disabled),
+.story-choice.primary:hover:not(:disabled),
+.story-choice.romance:hover:not(:disabled) {
+  transform: rotate(-1deg);
+  translate: -6px 0;
+  background: var(--vn-coral);
+  color: var(--vn-ink);
+  border-color: var(--vn-ink);
+  box-shadow: 6px 5px 0 var(--vn-ink);
+}
+.story-choice:active:not(:disabled) {
+  translate: -2px 2px;
+  box-shadow: 1px 1px 0 var(--vn-ink);
+}
+.story-choice:hover small {
+  color: var(--vn-ink);
+}
+.many-actions .story-choice {
+  min-height: 42px;
+  padding: 8px 12px;
+}
+.story-choice:focus-visible,
+button:focus-visible {
+  outline: 3px solid #80d8c6;
+  outline-offset: 4px;
+}
+.overlay {
+  backdrop-filter: blur(7px);
+  background: #181729a6;
+  animation: backdrop-in 130ms ease-out both;
+}
+.modal {
+  animation: modal-enter 180ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  border: 2px solid #d7bca1;
+  border-top: 6px solid var(--vn-coral);
+  box-shadow: 10px 10px 0 #17152970;
+}
+@keyframes modal-enter {
+  from {
+    opacity: 0;
+    translate: 0 14px;
+    scale: 0.985;
+  }
+  to {
+    opacity: 1;
+    translate: 0;
+    scale: 1;
+  }
+}
+.overlay-heading {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: #192331;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #d7bca144;
+  margin-bottom: 20px;
+}
+.overlay-heading > .eyebrow {
+  color: #ffe0ae;
+  letter-spacing: 2px;
+}
+.conversation-log article {
+  border-left: 3px solid var(--vn-coral);
+  padding: 0 0 0 16px;
+  margin: 22px 0;
+}
+.conversation-log strong {
+  color: var(--vn-coral);
+}
+.conversation-log p {
+  font-size: 14px;
+  line-height: 1.7;
+}
+.quick-menu button,
+.room-hotspot {
+  transition:
+    background 110ms,
+    color 110ms,
+    scale 110ms;
+}
+.quick-menu button:active,
+.room-target:active .room-hotspot {
+  scale: 0.92;
+}
+.bakery-room {
+  animation: vn-in 200ms ease-out both;
+}
+.room-caption h1 {
+  font-family: "DM Sans", sans-serif;
+  font-weight: 800;
+}
+.room-canvas {
+  border: 3px solid #e4cba7;
+  box-shadow: 7px 7px 0 #11152688;
+}
+.toast {
+  animation: modal-enter 160ms ease-out both;
+  border-left: 4px solid var(--vn-mint);
+}
+@media (max-width: 760px) {
+  .dialogue-dock {
+    width: calc(100% - 30px);
+    margin-bottom: 18px;
+    padding: 24px 16px 10px;
+    min-height: 160px;
+  }
+  .speaker-plaque {
+    left: 14px;
+    top: -30px;
+    min-width: 120px;
+    font-size: 17px;
+  }
+  .story-line {
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  .story-copy > .eyebrow {
+    font-size: 7px;
+  }
+  .story-actions,
+  .story-actions.many-actions {
+    right: 0;
+    width: min(100%, 370px);
+    bottom: calc(100% + 25px);
+    gap: 7px;
+  }
+  .story-choice,
+  .story-choice.primary,
+  .story-choice.romance {
+    min-height: 43px;
+    padding: 8px 12px;
+  }
+  .story-choice strong,
+  .many-actions .story-choice strong {
+    font-size: 12px;
+  }
+  .dialogue-mode .character-sprite,
+  .dialogue-mode .scene-tower .character-sprite,
+  .dialogue-mode .scene-library .character-sprite {
+    height: 69%;
+    max-width: 85%;
+    right: 22%;
+    bottom: 16%;
+    opacity: 0.94;
+  }
+  .dialogue-tools {
+    gap: 12px;
+  }
+  .dialogue-tools > span {
+    font-size: 6px;
+    letter-spacing: 0.6px;
+  }
+  .dialogue-tools button {
+    font-size: 9px;
+  }
+  .many-actions .story-choice small {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+.line-layout::before {
+  content: attr(data-text);
+  color: transparent;
+  pointer-events: none;
+}
+.room-target.npc-target {
+  z-index: 6;
+}
+.scene-companion .character-sprite {
+  right: 8%;
+  height: 80%;
+  bottom: -30px;
+  opacity: 0.82;
+  filter: saturate(0.6) brightness(0.82);
+  animation: actor-enter 200ms ease-out both;
+}
+@media (max-width: 760px) {
+  .scene-companion .character-sprite {
+    right: -20% !important;
+    height: 58% !important;
+    max-width: 70% !important;
+    opacity: 0.5 !important;
+  }
+}
+.overlay.overlay-exiting {
+  animation: backdrop-in 110ms ease-in reverse both;
+}
+.overlay-exiting .modal {
+  animation: modal-exit 110ms ease-in both;
+}
+@keyframes modal-exit {
+  to {
+    opacity: 0;
+    translate: 0 8px;
+    scale: 0.99;
+  }
+}

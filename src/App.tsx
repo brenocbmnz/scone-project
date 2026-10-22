@@ -62,6 +62,19 @@ import { GameOverlay } from "./components/novel/GameOverlay";
 import { SystemMenu } from "./components/novel/SystemMenu";
 import { Baking } from "./minigames/Baking";
 import { Puzzle } from "./minigames/Puzzle";
+function transitionScene(change: () => void) {
+  // Commit gameplay synchronously; presentation must never defer a save or action.
+  change();
+  if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    document.querySelector(".novel-app")?.animate(
+      [
+        { opacity: 0.7, transform: "translateY(3px)" },
+        { opacity: 1, transform: "translateY(0)" },
+      ],
+      { duration: 180, easing: "ease-out" },
+    );
+  }
+}
 type Overlay =
   "journal" | "recipes" | "people" | "settings" | "upgrades" | "baking" | null;
 export default function App() {
@@ -115,11 +128,13 @@ export default function App() {
   };
   const changeScene = (patch: Partial<SceneProgress>) => {
     setObservation(null);
-    update((s) => ({ ...s, scene: { ...s.scene, ...patch } }));
+    transitionScene(() =>
+      update((s) => ({ ...s, scene: { ...s.scene, ...patch } })),
+    );
   };
   const goHome = () => {
     setObservation(null);
-    update((s) => ({ ...s, scene: initialScene() }));
+    transitionScene(() => update((s) => ({ ...s, scene: initialScene() })));
   };
   const start = () => {
     if (
@@ -144,14 +159,16 @@ export default function App() {
   };
   const finishTalk = (romantic: boolean) => {
     if (!talk) return;
-    update((s) => ({
-      ...spendTime(
-        { ...s, flags: [...new Set([...s.flags, getDialogue(s, talk).id])] },
-        talk,
-        romantic,
-      ),
-      scene: initialScene(),
-    }));
+    transitionScene(() =>
+      update((s) => ({
+        ...spendTime(
+          { ...s, flags: [...new Set([...s.flags, getDialogue(s, talk).id])] },
+          talk,
+          romantic,
+        ),
+        scene: initialScene(),
+      })),
+    );
     setObservation(null);
     notify(
       romantic
@@ -176,7 +193,7 @@ export default function App() {
     setObservation(null);
     switch (object) {
       case "register":
-        if (g.phase === "work") update(startWork);
+        if (g.phase === "work") transitionScene(() => update(startWork));
         else
           notify(
             "The day’s orders are done. The till can rest until tomorrow.",
@@ -201,7 +218,7 @@ export default function App() {
           );
         break;
       case "bed":
-        if (canSleep(g)) update(sleep);
+        if (canSleep(g)) transitionScene(() => update(sleep));
         else
           notify(
             g.phase === "work"
@@ -412,7 +429,7 @@ export default function App() {
         detail: "A fresh start tomorrow",
         onSelect: () => {
           setObservation(null);
-          update(sleep);
+          transitionScene(() => update(sleep));
         },
       },
       {
@@ -458,7 +475,11 @@ export default function App() {
       )
         return;
       const target = e.target as HTMLElement;
-      if (target.closest("input,textarea,select,summary")) return;
+      if (
+        target.closest("input,textarea,select,summary") ||
+        document.querySelector(".overlay")
+      )
+        return;
       const index = Number(e.key) - 1;
       if (index >= 0 && index < actionRef.current.length) {
         const choice = actionRef.current[index];
@@ -472,7 +493,11 @@ export default function App() {
         !target.closest("button")
       ) {
         e.preventDefault();
-        actionRef.current[0].onSelect();
+        const reveal = document.querySelector<HTMLButtonElement>(
+          '.story-line[data-revealing="true"]',
+        );
+        if (reveal) reveal.click();
+        else actionRef.current[0].onSelect();
       }
     };
     document.addEventListener("keydown", handler);
@@ -497,7 +522,14 @@ export default function App() {
     >
       <SceneStage
         scene={scene}
-        actor={state.intro !== null ? undefined : actor}
+        companion={talk && state.beat === 1 ? talk : undefined}
+        actor={
+          roomVisible
+            ? undefined
+            : speaker === "Rowan" || (talk && state.beat === 1)
+              ? "rowan"
+              : actor
+        }
       />
       <div className="cinema-frame" aria-hidden="true" />
       <header className="game-hud">
@@ -695,9 +727,21 @@ export default function App() {
           {overlay === "baking" ? (
             <Baking
               index={recipeIndex}
+              draft={g.baking}
+              bonus={(g.level - 1) * 2}
+              onDraft={(draft) =>
+                update((s) =>
+                  s.phase === "work" &&
+                  s.workStarted &&
+                  s.day === g.day &&
+                  s.orders === g.orders
+                    ? { ...s, baking: draft }
+                    : s,
+                )
+              }
               onDone={(score) => {
                 const before = g.money;
-                update((s) => bake(s, score));
+                transitionScene(() => update((s) => bake(s, score)));
                 setOverlay(null);
                 notify(
                   `A happy customer. +${useGame.getState().game.money - before} coins.`,

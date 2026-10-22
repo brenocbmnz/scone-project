@@ -18,16 +18,26 @@ for (const r of [
   ["Bun", "Ember apple", "Cinnamon"],
 ]) {
   await page.getByRole("button", { name: "Let’s get baking" }).click();
-  for (const name of r)
-    await page.getByRole("button", { name, exact: true }).click();
-  await page.getByRole("button", { name: "Into the oven" }).click();
-  await page.getByRole("button", { name: "Warm the oven" }).click();
-  await page.waitForTimeout(2200);
-  await page.getByRole("button", { name: "Take it out" }).click();
-  await page.getByRole("button", { name: "Time to decorate" }).click();
-  for (let i = 0; i < 3; i++)
-    await page.getByRole("button", { name: /Add .* ·/ }).click();
-  await page.getByRole("button", { name: "Serve with love" }).click();
+  for (const [i, name] of r.entries()) {
+    await page
+      .getByRole("tab", {
+        name: ["01 Dough & pastry", "02 Fillings & icing", "03 Toppings"][i],
+      })
+      .click();
+    await page
+      .getByRole("button", { name: `Pick ${name}`, exact: true })
+      .click();
+    await page
+      .getByRole("button", { name: "Place ingredient", exact: true })
+      .click();
+    await page
+      .getByRole("button", { name: "Place ingredient", exact: true })
+      .waitFor({ state: "visible" });
+    await page.waitForFunction(
+      () => !document.querySelector(".drop-piece").disabled,
+    );
+  }
+  await page.getByRole("button", { name: "Serve my creation" }).click();
   await page.getByRole("button", { name: "Collect payment" }).click();
 }
 await page.getByRole("button", { name: "Go outside" }).click();
