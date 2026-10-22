@@ -1,3 +1,4 @@
+import { finishPastry } from "./baking-helpers.mjs";
 import { chromium } from "@playwright/test";
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1440, height: 1050 } });
@@ -13,32 +14,9 @@ await page.screenshot({ path: "artifacts/bakery-desktop.png", fullPage: true });
 await page
   .getByRole("button", { name: "Start work day at cash register" })
   .click();
-for (const r of [
-  ["Crescent", "Moonberry", "Star sugar"],
-  ["Bun", "Ember apple", "Cinnamon"],
-]) {
+for (let order = 0; order < 2; order++) {
   await page.getByRole("button", { name: "Let’s get baking" }).click();
-  for (const [i, name] of r.entries()) {
-    await page
-      .getByRole("tab", {
-        name: ["01 Dough & pastry", "02 Fillings & icing", "03 Toppings"][i],
-      })
-      .click();
-    await page
-      .getByRole("button", { name: `Pick ${name}`, exact: true })
-      .click();
-    await page
-      .getByRole("button", { name: "Place ingredient", exact: true })
-      .click();
-    await page
-      .getByRole("button", { name: "Place ingredient", exact: true })
-      .waitFor({ state: "visible" });
-    await page.waitForFunction(
-      () => !document.querySelector(".drop-piece").disabled,
-    );
-  }
-  await page.getByRole("button", { name: "Serve my creation" }).click();
-  await page.getByRole("button", { name: "Collect payment" }).click();
+  await finishPastry(page);
 }
 await page.getByRole("button", { name: "Go outside" }).click();
 await page.getByRole("button", { name: "Visit Bell Tower" }).click();

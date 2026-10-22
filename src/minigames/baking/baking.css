@@ -1,0 +1,591 @@
+.baking-game {
+  --bake-ink: #27333e;
+  --bake-paper: #fff0d4;
+  --bake-coral: #fa9384;
+  color: var(--bake-paper);
+}
+.baking-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  margin: 0 0 24px;
+}
+.baking-header h2 {
+  font-family: "DM Sans", sans-serif;
+  font-weight: 800;
+  font-size: clamp(23px, 3vw, 34px);
+  margin: 8px 0;
+  line-height: 1.15;
+}
+.baking-header p {
+  font-size: 12px;
+  color: #cbbfb5;
+  margin: 0;
+  max-width: 430px;
+}
+.baking-header .eyebrow {
+  color: #f4bfa6;
+  font-size: 8px;
+  letter-spacing: 1.6px;
+}
+.baking-steps {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  gap: 16px;
+}
+.baking-steps li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  color: #a1a5a9;
+}
+.baking-steps li > span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 27px;
+  height: 27px;
+  border: 1px solid #a1a5a966;
+  border-radius: 50%;
+  font-size: 10px;
+}
+.baking-steps .current {
+  color: #fff0d4;
+  font-weight: 700;
+}
+.baking-steps .current > span {
+  background: var(--bake-coral);
+  color: #27333e;
+  border-color: var(--bake-coral);
+  box-shadow: 0 0 0 4px #fa938417;
+}
+.baking-steps .done {
+  color: #baddc0;
+}
+.baking-steps .done > span {
+  border-color: #baddc0;
+}
+.baking-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 242px;
+  gap: 26px;
+  align-items: start;
+}
+.baking-station {
+  min-width: 0;
+}
+.station-direction {
+  min-height: 93px;
+  animation: vn-in 160ms ease-out both;
+}
+.station-direction .eyebrow {
+  color: #baddc0;
+  font-size: 8px;
+}
+.station-direction h3 {
+  font-family: "DM Sans", sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  margin: 7px 0;
+  line-height: 1.35;
+}
+.station-direction p {
+  font-size: 11px;
+  color: #cbbfb5;
+  margin: 0 0 14px;
+  line-height: 1.6;
+}
+.baking-board {
+  touch-action: none;
+  position: relative;
+  border: 3px solid #e2c6a0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 6px 6px 0 #0b131e66;
+  background: #9a694f;
+}
+.baking-board > svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.baking-shape .baking-board > svg {
+  cursor: grab;
+}
+.baking-shape .baking-board > svg:active {
+  cursor: grabbing;
+}
+.baking-finish .baking-board > svg {
+  cursor: crosshair;
+}
+.bake-pastry {
+  transition: transform 80ms ease-out;
+}
+.shape-guide {
+  filter: drop-shadow(0 3px 0 #27333e44);
+}
+.shape-progress {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  bottom: 15px;
+  left: 0;
+  width: 100%;
+  pointer-events: none;
+}
+.shape-progress > span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 23px;
+  height: 23px;
+  border: 1px solid #fff0d488;
+  background: #27333e;
+  color: #e4c6a0;
+  font-size: 10px;
+  border-radius: 50%;
+}
+.shape-progress > span.complete {
+  background: #c1e1bd;
+  color: #27333e;
+  border-color: #c1e1bd;
+}
+.baking-controls {
+  margin-top: 19px;
+}
+.baking-controls button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  font-family: "DM Sans", sans-serif;
+  font-size: 12px;
+  min-height: 43px;
+}
+.baking-controls .baking-main-action {
+  display: flex;
+  width: 100%;
+  background: #fa9384;
+  color: #202b38;
+  border: 2px solid #fa9384;
+  font-weight: 800;
+  box-shadow: 3px 3px 0 #0b131e88;
+}
+.baking-controls .baking-main-action:hover:not(:disabled) {
+  background: #ffb59b;
+  border-color: #ffb59b;
+  transform: translateY(-1px);
+}
+.baking-main-action > span {
+  margin-left: auto;
+  padding: 0 6px;
+  opacity: 0.65;
+  font-weight: 500;
+}
+.baking-controls > p {
+  font-size: 10px;
+  color: #cbbfb5;
+  text-align: center;
+  margin: 11px 0 0;
+  min-height: 30px;
+  line-height: 1.5;
+}
+.baking-ticket {
+  position: relative;
+  background: #fff0d4;
+  color: #27333e;
+  padding: 31px 20px 24px;
+  transform: rotate(1.4deg);
+  box-shadow: 6px 6px 0 #0b131e66;
+  margin-top: 7px;
+  border-radius: 2px;
+}
+.ticket-pin {
+  position: absolute;
+  top: -15px;
+  left: calc(50% - 14px);
+  font-size: 27px;
+  color: #fa9384;
+  text-shadow: 1px 2px #27333e;
+}
+.baking-ticket > .eyebrow {
+  font-size: 7px;
+  color: #8d6758;
+  letter-spacing: 1.6px;
+}
+.baking-ticket h3 {
+  font-family: "Lora", serif;
+  font-size: 23px;
+  font-style: italic;
+  margin: 12px 0 20px;
+  font-weight: 500;
+  color: #27333e;
+}
+.ticket-ingredients {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border-top: 1px dashed #9c8270;
+  border-bottom: 1px dashed #9c8270;
+}
+.ticket-ingredients li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  padding: 10px 0;
+  font-weight: 700;
+}
+.ticket-ingredients li > span {
+  font-weight: 500;
+  font-size: 8px;
+  letter-spacing: 1px;
+  color: #8d6758;
+  padding-top: 3px;
+}
+.ticket-tip {
+  display: flex;
+  gap: 9px;
+  margin-top: 20px;
+  align-items: flex-start;
+}
+.ticket-tip svg {
+  flex-shrink: 0;
+  color: #a86453;
+}
+.ticket-tip p {
+  font-size: 11px;
+  line-height: 1.8;
+  color: #665957;
+  margin: 0;
+}
+.baking-save-note {
+  display: block;
+  margin: 25px 0 0;
+  text-align: center;
+  font-size: 9px;
+  line-height: 1.7;
+  color: #8d6758;
+}
+.bake-gauge {
+  height: 17px;
+  border: 2px solid #e3c8a5;
+  border-radius: 9px;
+  position: relative;
+  background: linear-gradient(
+    to right,
+    #e9d8b2 40%,
+    #dca568 40%,
+    #e8ae6b 96%,
+    #9a614c 96%
+  );
+  margin: 2px 8px 0;
+}
+.golden-window {
+  position: absolute;
+  left: 40%;
+  width: 56%;
+  inset-block: -2px;
+  border: 2px solid #c4e5bb;
+  background: #b4e5b633;
+  border-radius: 7px;
+}
+.bake-gauge > i {
+  position: absolute;
+  height: 29px;
+  width: 7px;
+  background: #fff5d4;
+  border: 1px solid #27333e;
+  box-shadow: 0 1px 3px #27333e77;
+  top: -8px;
+  transform: translateX(-50%);
+  border-radius: 3px;
+}
+.bake-gauge-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  color: #cbbfb5;
+  margin: 9px 6px 13px;
+}
+.bake-gauge-labels > span:nth-child(2) {
+  color: #c4e5bb;
+}
+.oven-actions {
+  display: flex;
+  gap: 10px;
+}
+.oven-actions button {
+  flex: 1;
+}
+.gentle-oven {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 14px;
+  color: #efdabf;
+  flex-wrap: wrap;
+}
+.gentle-oven input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: #baddc0;
+}
+.gentle-oven > span {
+  color: #b4b2b3;
+  font-size: 9px;
+  font-weight: 400;
+}
+.oven-label {
+  position: absolute;
+  top: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  padding: 7px 12px;
+  background: #232b36e6;
+  border: 1px solid #d5a47066;
+  border-radius: 20px;
+  font-size: 10px;
+  color: #fff0d4;
+  white-space: nowrap;
+}
+.bake-steam {
+  animation: steam-rise 1400ms ease-in-out infinite alternate;
+}
+@keyframes steam-rise {
+  from {
+    translate: 0 7px;
+    opacity: 0.3;
+  }
+  to {
+    translate: 0 -7px;
+    opacity: 0.7;
+  }
+}
+.decoration-zones {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.decoration-zones button {
+  position: absolute;
+  pointer-events: auto;
+  width: 34px;
+  height: 34px;
+  min-height: 0;
+  border: 2px dashed #fff8dd;
+  background: #27333e44;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  padding: 0;
+  color: #fff8dd;
+  font-size: 22px;
+  line-height: 1;
+  transition:
+    background 100ms,
+    opacity 100ms;
+  touch-action: manipulation;
+}
+.decoration-zones button.covered {
+  opacity: 0.25;
+  background: #a6cbac;
+  border-style: solid;
+  color: #27333e;
+  font-size: 14px;
+}
+.decoration-zones button:hover:not(:disabled),
+.decoration-zones button:focus-visible {
+  transform: translate(-50%, -50%);
+  background: #fa9384;
+  color: #27333e;
+  opacity: 1;
+}
+.finishing-tools {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 13px;
+}
+.finishing-tools > span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-right: auto;
+  font-size: 11px;
+  color: #c9e3be;
+}
+.finishing-tools > button {
+  min-width: 38px;
+  padding: 9px;
+  min-height: 37px;
+}
+.baking-stars {
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+  margin: 21px 0;
+  color: #b77a38;
+}
+.bake-breakdown {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px;
+}
+.bake-breakdown li {
+  display: flex;
+  gap: 5px;
+  font-size: 10px;
+  line-height: 1.5;
+  padding: 5px 0;
+}
+.bake-breakdown svg {
+  flex-shrink: 0;
+}
+.baking-ticket blockquote {
+  font-family: "Lora", serif;
+  font-size: 13px;
+  line-height: 1.7;
+  margin: 20px 0;
+  padding: 0;
+  color: #796059;
+}
+.baking-ticket cite {
+  display: block;
+  font-family: "DM Sans", sans-serif;
+  font-size: 10px;
+  margin-top: 5px;
+}
+.baking-payment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-top: 1px dashed #9c8270;
+  padding-top: 17px;
+  color: #9a5d38;
+}
+.baking-payment strong {
+  font-size: 28px;
+}
+.baking-payment > span {
+  font-size: 10px;
+}
+.baking-result .baking-board {
+  border-color: #c4e5bb;
+}
+.baking-result .baking-board > svg {
+  cursor: default;
+}
+@media (max-width: 760px) {
+  .baking-header {
+    display: block;
+    margin-bottom: 20px;
+  }
+  .baking-header h2 {
+    font-size: 25px;
+  }
+  .baking-header p {
+    font-size: 11px;
+  }
+  .baking-steps {
+    margin-top: 18px;
+    gap: 20px;
+  }
+  .baking-workspace {
+    grid-template-columns: 1fr;
+    gap: 25px;
+  }
+  .station-direction {
+    min-height: 95px;
+  }
+  .station-direction h3 {
+    font-size: 17px;
+  }
+  .station-direction p {
+    font-size: 11px;
+  }
+  .baking-board {
+    border-width: 2px;
+    border-radius: 12px;
+  }
+  .baking-controls {
+    margin-top: 16px;
+  }
+  .baking-ticket {
+    margin: 0 7px 8px;
+    padding: 25px 20px 20px;
+    transform: rotate(0.6deg);
+  }
+  .baking-ticket h3 {
+    font-size: 21px;
+    margin: 10px 0 15px;
+  }
+  .ticket-ingredients li {
+    padding: 7px 0;
+  }
+  .ticket-tip {
+    margin-top: 15px;
+  }
+  .baking-save-note {
+    margin-top: 14px;
+  }
+  .decoration-zones button {
+    width: 36px;
+    height: 36px;
+    font-size: 19px;
+  }
+  .shape-progress {
+    bottom: 8px;
+  }
+  .shape-progress > span {
+    width: 19px;
+    height: 19px;
+    font-size: 8px;
+  }
+  .oven-label {
+    top: 8px;
+    padding: 4px 9px;
+    font-size: 8px;
+  }
+  .oven-label svg {
+    width: 12px;
+    height: 12px;
+  }
+  .gentle-oven {
+    gap: 7px;
+  }
+  .gentle-oven span {
+    flex-basis: 100%;
+    margin-left: 23px;
+  }
+  .baking-controls button {
+    min-height: 45px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bake-steam {
+    animation: none;
+  }
+  .bake-pastry {
+    transition: none;
+  }
+}
+/* A tap after a shaping stroke must activate immediately, without double-tap zoom arbitration. */
+.baking-game button {
+  touch-action: manipulation;
+}
