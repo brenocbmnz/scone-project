@@ -23,13 +23,7 @@ import {
   VolumeX,
 } from "lucide-react";
 import { useGame } from "./game/store";
-import {
-  characters,
-  recipes,
-  locations,
-  type Npc,
-  type PuzzleId,
-} from "./game/data";
+import { characters, locations, type Npc, type PuzzleId } from "./game/data";
 import {
   bake,
   sleep,
@@ -60,6 +54,7 @@ import { SceneStage, type Actor } from "./components/novel/SceneStage";
 import { DialogueBox, type Choice } from "./components/novel/DialogueBox";
 import { GameOverlay } from "./components/novel/GameOverlay";
 import { SystemMenu } from "./components/novel/SystemMenu";
+import { orderFor, recipeFor } from "./minigames/pastries/rules";
 import { Baking } from "./minigames/Baking";
 import { Puzzle } from "./minigames/Puzzle";
 function transitionScene(change: () => void) {
@@ -88,8 +83,9 @@ export default function App() {
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const frame = useRef<HTMLDivElement>(null);
   const state = g.scene;
-  const recipeIndex = (g.day - 1) * 2 + g.orders;
-  const recipe = recipes[recipeIndex % recipes.length];
+  const orderIds = orderFor(g);
+  const recipe = recipeFor(orderIds[0]);
+  const orderName = orderIds.length > 1 ? "Bakery sampler" : recipe.name;
   const talk = state.talk;
   const visit = state.visit;
   const scene: SceneId =
@@ -394,12 +390,15 @@ export default function App() {
     );
   } else if (g.phase === "work") {
     speaker = recipe.customer;
-    caption = `Customer ${g.orders + 1} of 2 · ${recipe.name}`;
-    text = `“${recipe.quote}”`;
+    caption = `Customer ${g.orders + 1} of 2 · ${orderName}`;
+    text =
+      orderIds.length > 1
+        ? `“Could I have a sampler? ${orderIds.map((id) => recipeFor(id).name).join(" and ")}, please.”`
+        : `“${recipe.quote}”`;
     choices.push(
       {
         label: "Let’s get baking",
-        detail: `Prepare a ${recipe.name.toLowerCase()}`,
+        detail: `Prepare ${orderIds.map((id) => recipeFor(id).name).join(" + ")}`,
         kind: "primary",
         onSelect: () => setOverlay("baking"),
       },
@@ -629,8 +628,14 @@ export default function App() {
         g.phase === "work" && (
           <aside className="order-note" aria-label="Customer order">
             <span className="eyebrow">A WISH, FRESHLY ORDERED</span>
-            <h2>{recipe.name}</h2>
+            <h2>{orderName}</h2>
             <p>
+              {orderIds.length > 1 && (
+                <>
+                  {orderIds.map((id) => recipeFor(id).name).join(" + ")}
+                  <br />
+                </>
+              )}
               {recipe.base}
               <span> · </span>
               {recipe.filling}
@@ -639,7 +644,8 @@ export default function App() {
             </p>
             <div>
               <Coins size={13} />
-              12–{24 + (g.level - 1) * 2} coins<span>✦</span>
+              {12 * orderIds.length}–
+              {(24 + (g.level - 1) * 2) * orderIds.length} coins<span>✦</span>
             </div>
           </aside>
         )}
@@ -726,12 +732,14 @@ export default function App() {
         >
           {overlay === "baking" ? (
             <Baking
-              index={recipeIndex}
+              orderIds={orderIds}
+              seed={((g.day - 1) * 2 + g.orders) % 100000000}
               draft={g.baking}
               bonus={(g.level - 1) * 2}
               onDraft={(draft) =>
                 update((s) =>
                   s.phase === "work" &&
+                  s.baking === g.baking &&
                   s.workStarted &&
                   s.day === g.day &&
                   s.orders === g.orders
@@ -739,9 +747,9 @@ export default function App() {
                     : s,
                 )
               }
-              onDone={(score) => {
+              onDone={(score, count) => {
                 const before = g.money;
-                transitionScene(() => update((s) => bake(s, score)));
+                transitionScene(() => update((s) => bake(s, score, count)));
                 setOverlay(null);
                 notify(
                   `A happy customer. +${useGame.getState().game.money - before} coins.`,

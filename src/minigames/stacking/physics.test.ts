@@ -109,18 +109,14 @@ describe("baking session persistence", () => {
       "base:Crescent",
       400,
     );
-    expect(parseSave(JSON.stringify({ ...initial(), baking }))?.baking).toEqual(
-      {
-        kind: "tactile-v1",
-        recipeId: "moon",
-        stage: "shape",
-        shaped: 0,
-        heat: 0,
-        bakeRating: null,
-        marks: [],
-        assisted: false,
-      },
-    );
+    expect(
+      parseSave(JSON.stringify({ ...initial(), baking }))?.baking,
+    ).toMatchObject({
+      kind: "pastry-v1",
+      orderIds: ["moon"],
+      stage: "intro",
+      scores: [],
+    });
   });
   it("defaults older saves to an empty session", () => {
     const { baking, ...old } = initial();

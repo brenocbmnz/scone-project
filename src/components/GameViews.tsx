@@ -1,8 +1,13 @@
+import {
+  menu,
+  unlockLevel,
+  gameNames,
+  recipeFor,
+} from "../minigames/pastries/rules";
 import { Map, Check, Heart, ArrowUpRight, Sparkles } from "lucide-react";
 import { useGame } from "../game/store";
 import {
   characters,
-  recipes,
   quests,
   locations,
   upgrades,
@@ -123,15 +128,28 @@ export function QuestJournal({ onTown }: { onTown: () => void }) {
   );
 }
 export function RecipeBook() {
+  const { game: g } = useGame();
   return (
     <>
       <div className="recipe-grid">
-        {recipes.map((r) => (
-          <article className="recipe-card" key={r.id}>
+        {menu.map(recipeFor).map((r) => (
+          <article
+            className={
+              "recipe-card" + (g.level < unlockLevel(r.id) ? " locked" : "")
+            }
+            key={r.id}
+          >
             <Pastry variant={r.base} color={r.color} stars={3} />
-            <span className="eyebrow">A HOUSE FAVORITE</span>
+            <span className="eyebrow">
+              {gameNames[r.id as keyof typeof gameNames]}
+            </span>
             <h2>{r.name}</h2>
             <p>{r.description}</p>
+            <span className="recipe-unlock">
+              {g.level >= unlockLevel(r.id)
+                ? "Available to order"
+                : `Unlocks at bakery level ${unlockLevel(r.id)}`}
+            </span>
             <div className="recipe-ingredients">
               {r.base} <span>+</span> {r.filling} <span>+</span> {r.topping}
             </div>
@@ -164,6 +182,11 @@ export function BakeryUpgrades() {
             <span className="upgrade-number">0{i + 2}</span>
             <h3>{u.name}</h3>
             <p>{u.description}</p>
+            <p className="muted">
+              {i < 3
+                ? `Unlocks ${recipeFor(menu[i + 1]).name}`
+                : "Unlocks occasional two-pastry samplers"}
+            </p>
             <button
               disabled={
                 g.phase !== "evening" || g.level !== i + 1 || g.money < u.cost

@@ -1,7 +1,7 @@
 import {
-  readBakingSession,
-  type BakingSession,
-} from "../minigames/baking/session";
+  readPastrySession,
+  type PastrySession,
+} from "../minigames/pastries/rules";
 import { initialScene, type SceneProgress } from "./scenes";
 import { type Npc, upgrades, puzzles, quests } from "./data";
 export type Phase = "work" | "free" | "evening" | "ending";
@@ -10,7 +10,7 @@ export interface Progress {
   scene: SceneProgress;
   started: boolean;
   workStarted: boolean;
-  baking: BakingSession | null;
+  baking: PastrySession | null;
   day: number;
   phase: Phase;
   money: number;
@@ -81,16 +81,26 @@ export function solve(s: Progress, id: string): Progress {
     flags: flag && !s.flags.includes(flag) ? [...s.flags, flag] : s.flags,
   };
 }
-export function bake(s: Progress, score: number): Progress {
+export function bake(s: Progress, score: number, count = 1): Progress {
+  if (
+    !Number.isInteger(count) ||
+    count < 1 ||
+    count > 2 ||
+    (count > 1 && s.level < 5) ||
+    !Number.isInteger(score) ||
+    score < 0 ||
+    score > 3 * count
+  )
+    return s;
   if (s.phase !== "work" || !s.workStarted || s.orders >= 2) return s;
   return {
     ...s,
-    money: s.money + 12 + score * 4 + (s.level - 1) * 2,
+    money: s.money + 12 * count + score * 4 + (s.level - 1) * 2 * count,
     orders: s.orders + 1,
     workStarted: s.orders !== 1,
     baking: null,
     scene: { ...s.scene, room: s.orders === 1 },
-    totalOrders: s.totalOrders + 1,
+    totalOrders: s.totalOrders + count,
     phase: s.orders === 1 ? "free" : "work",
   };
 }
@@ -199,7 +209,7 @@ export function parseSave(raw: string | null): Progress | null {
       (scene.talk !== null && s.phase !== "free")
     )
       return null;
-    return { ...s, scene, baking: readBakingSession(v.baking) };
+    return { ...s, scene, baking: readPastrySession(v.baking) };
   } catch {
     return null;
   }
