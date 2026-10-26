@@ -5,11 +5,13 @@ export function GameOverlay({
   children,
   onClose,
   wide = false,
+  fitted = false,
 }: {
   title: string;
   children: ReactNode;
   onClose: () => void;
   wide?: boolean;
+  fitted?: boolean;
 }) {
   const ref = useRef<HTMLElement>(null);
   const closeRef = useRef(onClose);
@@ -91,7 +93,9 @@ export function GameOverlay({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={"modal " + (wide ? "wide" : "")}
+        className={
+          "modal " + (wide ? "wide" : "") + (fitted ? " baking-modal" : "")
+        }
       >
         <div className="overlay-heading">
           <span className="eyebrow">{title}</span>

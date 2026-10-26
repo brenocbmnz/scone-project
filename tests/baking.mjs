@@ -43,7 +43,7 @@ async function resultStars(stars) {
 }
 async function rhythm() {
   await page
-    .getByRole("button", { name: "Start kneading", exact: true })
+    .getByRole("button", { name: "Start baking", exact: true })
     .click();
   await page.clock.runFor(1400);
   for (let i = 0; i < 6; i++) {
@@ -55,7 +55,7 @@ async function rhythm() {
   }
 }
 async function puzzle() {
-  await page.getByRole("button", { name: "Start dough puzzle" }).click();
+  await page.getByRole("button", { name: "Start baking" }).click();
   for (const [i, name] of [
     "Left curl",
     "Middle fold",
@@ -84,7 +84,7 @@ await seed({ level: 1, day: 1, orders: 0 });
 await expect(
   page.getByRole("heading", { name: "Emberheart Bun", exact: true }),
 ).toHaveCount(1);
-await page.getByRole("button", { name: "Start kneading", exact: true }).click();
+await page.getByRole("button", { name: "Start baking", exact: true }).click();
 await page.clock.runFor(1400);
 await page.getByRole("button", { name: /Knead dough/ }).click();
 await page.getByRole("button", { name: "Pause", exact: true }).click();
@@ -116,12 +116,12 @@ expect((await state()).orders).toBe(1);
 expect((await state()).baking).toBeNull();
 // A delayed animation frame must not slow the game clock or stretch the rhythm.
 await seed({ level: 1, day: 1, orders: 0 });
-await page.getByRole("button", { name: "Start kneading", exact: true }).click();
+await page.getByRole("button", { name: "Start baking", exact: true }).click();
 await page.clock.fastForward(2100);
 expect((await state()).baking.beats.length).toBeGreaterThanOrEqual(1);
 // Crescent: actual drag-and-drop, rotation, keyboard placement, undo and result resume.
 await seed({ level: 2, day: 1, orders: 1 });
-await page.getByRole("button", { name: "Start dough puzzle" }).click();
+await page.getByRole("button", { name: "Start baking" }).click();
 let box = await page
   .getByRole("img", { name: "Crescent puzzle board" })
   .boundingBox();
@@ -162,7 +162,7 @@ await resultStars(3);
 await page.screenshot({ path: "artifacts/pastry-crescent-result.png" });
 // Tart: learn from the visible flashes, make one mistake, resume a partly-filled recipe.
 await seed({ level: 3, day: 2, orders: 0 });
-await page.getByRole("button", { name: "Watch recipe", exact: true }).click();
+await page.getByRole("button", { name: "Start baking", exact: true }).click();
 const pattern = [];
 await page.clock.runFor(400);
 for (let i = 0; i < 4; i++) {
@@ -200,7 +200,7 @@ for (let i = 2; i < 4; i++)
 await resultStars(3);
 // Roll: no center shortcut, direct painting, lift/resume and equivalent keyboard path.
 await seed({ level: 4, day: 2, orders: 1 });
-await page.getByRole("button", { name: "Start icing" }).click();
+await page.getByRole("button", { name: "Start baking" }).click();
 const icing = page.getByRole("img", { name: "Spiral icing board" });
 box = await icing.boundingBox();
 await page.mouse.click(box.x + box.width * 0.5, box.y + box.height * 0.5);
@@ -301,7 +301,7 @@ await mobile.evaluate(() => {
 });
 await mobile.reload();
 await mobile.getByRole("button", { name: "Let’s get baking" }).tap();
-await mobile.getByRole("button", { name: "Start icing" }).tap();
+await mobile.getByRole("button", { name: "Start baking" }).tap();
 const canvas = mobile.getByRole("img", { name: "Spiral icing board" });
 await canvas.scrollIntoViewIfNeeded();
 box = await canvas.boundingBox();
@@ -361,7 +361,7 @@ async function mobileSeed(patch) {
   await mobile.getByRole("button", { name: "Let’s get baking" }).tap();
 }
 await mobileSeed({ level: 1, day: 1, orders: 0 });
-await mobile.getByRole("button", { name: "Start kneading", exact: true }).tap();
+await mobile.getByRole("button", { name: "Start baking", exact: true }).tap();
 await mobile.clock.runFor(1400);
 for (let i = 0; i < 6; i++) {
   if (i) {
@@ -375,7 +375,7 @@ for (let i = 0; i < 6; i++) {
 }
 await expect(mobile.getByLabel("3 of 3 quality stars")).toBeVisible();
 await mobileSeed({ level: 2, day: 1, orders: 1 });
-await mobile.getByRole("button", { name: "Start dough puzzle" }).tap();
+await mobile.getByRole("button", { name: "Start baking" }).tap();
 const left = mobile.getByRole("button", { name: /^Left curl/ });
 await left.scrollIntoViewIfNeeded();
 const leftBox = await left.boundingBox();
@@ -424,7 +424,7 @@ expect(
 ).toBe(3);
 await mobileSeed({ level: 3, day: 2, orders: 0 });
 await mobile.getByRole("checkbox", { name: "Helping hand" }).check();
-await mobile.getByRole("button", { name: "Watch recipe", exact: true }).tap();
+await mobile.getByRole("button", { name: "Start baking", exact: true }).tap();
 await mobile.clock.runFor(4200);
 const hints = await mobile.locator(".memory-pattern > span").allTextContents();
 for (const hint of hints)

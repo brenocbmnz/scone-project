@@ -97,65 +97,75 @@ export function DoughPuzzle({
           select a piece and tap a space.
         </p>
       </div>
-      <div ref={board} className="puzzle-board">
-        <WorkBoard label="Crescent puzzle board">
-          {centers.map((p, slot) => (
-            <g key={slot} transform={`translate(${p.x} ${p.y})`}>
-              <path
-                d={paths[slot]}
-                transform={`rotate(${targetTurns[slot] * 90})`}
-                fill={
-                  s.assisted
-                    ? ["#f4c0a755", "#e9d2a455", "#b9d7bd55"][slot]
-                    : "#f8e7c122"
-                }
-                stroke="#fff2cb"
-                strokeWidth="4"
-                strokeDasharray="9 7"
-              />
-              {s.tiles.map((position, piece) =>
-                position !== slot ? null : (
-                  <g key={piece}>
-                    <path
-                      d={paths[piece]}
-                      transform={`rotate(${s.turns[piece] * 90})`}
-                      fill={["#efba91", "#f5d4a2", "#e6b68c"][piece]}
-                      stroke={
-                        piece === slot && s.turns[piece] === targetTurns[piece]
-                          ? "#baddb5"
-                          : "#a9704e"
-                      }
-                      strokeWidth="5"
-                    />
-                    <path
-                      d="M-20 0Q0 15 20 0"
-                      fill="none"
-                      stroke="#a574b4"
-                      strokeWidth="12"
-                      strokeLinecap="round"
-                    />
-                  </g>
-                ),
-              )}
-              {s.assisted && (
-                <text y="105" textAnchor="middle" fill="#fff0d4" fontSize="15">
-                  {names[slot]} · turn {targetTurns[slot] + 1}
-                </text>
-              )}
-            </g>
-          ))}
-        </WorkBoard>
-        <div className="puzzle-slots">
-          {centers.map((p, i) => (
-            <button
-              key={i}
-              aria-label={`Place selected dough in space ${i + 1}`}
-              style={{ left: `${p.x / 8}%`, top: `${p.y / 4.6}%` }}
-              onClick={() => place(selected, i)}
-            >
-              {s.tiles[i] === i && s.turns[i] === targetTurns[i] ? "✓" : i + 1}
-            </button>
-          ))}
+      <div className="puzzle-area">
+        <div ref={board} className="puzzle-board">
+          <WorkBoard label="Crescent puzzle board">
+            {centers.map((p, slot) => (
+              <g key={slot} transform={`translate(${p.x} ${p.y})`}>
+                <path
+                  d={paths[slot]}
+                  transform={`rotate(${targetTurns[slot] * 90})`}
+                  fill={
+                    s.assisted
+                      ? ["#f4c0a755", "#e9d2a455", "#b9d7bd55"][slot]
+                      : "#f8e7c122"
+                  }
+                  stroke="#fff2cb"
+                  strokeWidth="4"
+                  strokeDasharray="9 7"
+                />
+                {s.tiles.map((position, piece) =>
+                  position !== slot ? null : (
+                    <g key={piece}>
+                      <path
+                        d={paths[piece]}
+                        transform={`rotate(${s.turns[piece] * 90})`}
+                        fill={["#efba91", "#f5d4a2", "#e6b68c"][piece]}
+                        stroke={
+                          piece === slot &&
+                          s.turns[piece] === targetTurns[piece]
+                            ? "#baddb5"
+                            : "#a9704e"
+                        }
+                        strokeWidth="5"
+                      />
+                      <path
+                        d="M-20 0Q0 15 20 0"
+                        fill="none"
+                        stroke="#a574b4"
+                        strokeWidth="12"
+                        strokeLinecap="round"
+                      />
+                    </g>
+                  ),
+                )}
+                {s.assisted && (
+                  <text
+                    y="105"
+                    textAnchor="middle"
+                    fill="#fff0d4"
+                    fontSize="15"
+                  >
+                    {names[slot]} · turn {targetTurns[slot] + 1}
+                  </text>
+                )}
+              </g>
+            ))}
+          </WorkBoard>
+          <div className="puzzle-slots">
+            {centers.map((p, i) => (
+              <button
+                key={i}
+                aria-label={`Place selected dough in space ${i + 1}`}
+                style={{ left: `${p.x / 8}%`, top: `${p.y / 4.6}%` }}
+                onClick={() => place(selected, i)}
+              >
+                {s.tiles[i] === i && s.turns[i] === targetTurns[i]
+                  ? "✓"
+                  : i + 1}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
       <div className="dough-tray" aria-label="Dough pieces">

@@ -23,6 +23,7 @@ import { MemoryGame } from "./pastries/MemoryGame";
 import { SpiralGame } from "./pastries/SpiralGame";
 import "./baking/baking.css";
 import "./pastries/pastries.css";
+import "./pastries/viewport.css";
 interface Props {
   orderIds: RecipeId[];
   seed: number;
@@ -33,31 +34,27 @@ interface Props {
 }
 const descriptions: Record<
   RecipeId,
-  { title: string; text: string; hint: string; start: string }
+  { title: string; text: string; hint: string }
 > = {
   ember: {
     title: "Give your bun a heartbeat.",
     text: "Knead as the ring meets the dough. Six soft beats make one warm bun.",
     hint: "Tap Knead or press Space. Sound and visual cues follow the same beat.",
-    start: "Start kneading",
   },
   moon: {
     title: "A little puzzle, folded by hand.",
     text: "Three dough pieces belong in three outlines. Rotate them until the pointed ends line up.",
     hint: "Drag pieces, or choose a piece and tap a numbered space. Undo is free.",
-    start: "Start dough puzzle",
   },
   ghost: {
     title: "A recipe you can almost hear.",
     text: "Four bowls will glow, one at a time. Remember their order to fill your tart.",
     hint: "Watch, then tap the bowls. Replay the recipe whenever you like.",
-    start: "Watch recipe",
   },
   cinnamon: {
     title: "A spiral worth taking your time over.",
     text: "Follow the glowing tip with your icing bag. Leave a creamy trail around the roll.",
     hint: "Drag along the spiral. Lift to reposition, or use Pipe next section and the right arrow.",
-    start: "Start icing",
   },
 };
 export function Baking({
@@ -77,6 +74,7 @@ export function Baking({
     onFrame,
   } = usePastry(orderIds, seed, draft, onDraft);
   const [watchToken, setWatchToken] = useState(0);
+  const [help, setHelp] = useState(false);
   const paid = useRef(false);
   const touchTap = useRef<{
       button: HTMLButtonElement;
@@ -99,7 +97,8 @@ export function Baking({
   };
   const start = () => {
     audio.tone(260, 0.08);
-    commit({ ...s, stage: "play" });
+    setHelp(false);
+    commit({ ...current.current, stage: "play" });
     if (id === "ember") setRunning(true);
     if (id === "ghost") setWatchToken((n) => n + 1);
   };
@@ -113,7 +112,7 @@ export function Baking({
           : `${Math.round((s.traced / 80) * 100)}% of the spiral iced`;
   return (
     <div
-      className={`baking-game signature-game game-${id} game-${s.stage}`}
+      className={`baking-game signature-game game-${id} game-${help ? "intro" : s.stage}`}
       onPointerDown={(e) => {
         const button = (e.target as Element).closest<HTMLButtonElement>(
           "button",
@@ -167,6 +166,16 @@ export function Baking({
           <p>{gameNames[id]}</p>
         </div>
         <div className="signature-preferences">
+          {s.stage === "play" && !help && (
+            <button
+              onClick={() => {
+                setRunning(false);
+                setHelp(true);
+              }}
+            >
+              How to play
+            </button>
+          )}
           <button
             aria-label={
               audio.enabled ? "Mute kitchen sounds" : "Enable kitchen sounds"
@@ -189,7 +198,7 @@ export function Baking({
       </header>
       <div className="baking-workspace">
         <section className="baking-station" aria-label={gameNames[id]}>
-          {s.stage === "intro" ? (
+          {s.stage === "intro" || help ? (
             <div className="pastry-primer">
               <span className="signature-emblem" aria-hidden="true">
                 {id === "ember"
@@ -202,9 +211,34 @@ export function Baking({
               </span>
               <h3>{intro.title}</h3>
               <p>{intro.text}</p>
-              <div className="primer-controls">{intro.hint}</div>
+              <ol className="primer-controls">
+                {{
+                  ember: [
+                    "Watch the ring shrink toward the dough.",
+                    "Click Knead or press Space when the rings meet.",
+                    "Follow all six beats to finish your bun.",
+                  ],
+                  moon: [
+                    "Choose a dough piece from the tray.",
+                    "Rotate it and drag it onto the matching outline, or tap a numbered space.",
+                    "Match all three folds, then choose Bake my crescent.",
+                  ],
+                  ghost: [
+                    "Watch the four ingredient bowls light up.",
+                    "Repeat their order by clicking the bowls.",
+                    "Replay whenever you need; Helping hand keeps the recipe visible.",
+                  ],
+                  cinnamon: [
+                    "Press the glowing tip and drag along the spiral.",
+                    "Lift to reposition, or use Pipe next section to continue.",
+                    "Cover the spiral, then choose Bake my roll.",
+                  ],
+                }[id].map((step) => (
+                  <li key={step}>{step}</li>
+                ))}
+              </ol>
               <button className="primary signature-primary" onClick={start}>
-                {intro.start}
+                {help ? "Resume baking" : "Start baking"}
                 <ArrowRight size={17} />
               </button>
               <small>
@@ -229,6 +263,19 @@ export function Baking({
                 </p>
               </div>
               <ResultPastry session={s} />
+              <div
+                className="baking-stars"
+                aria-label={`${score} of 3 quality stars`}
+              >
+                {[0, 1, 2].map((i) => (
+                  <Star
+                    key={i}
+                    size={26}
+                    fill={score > i ? "currentColor" : "none"}
+                  />
+                ))}
+              </div>
+
               <div className="mobile-quality">
                 <span>{score} / 3 quality stars</span>
                 <strong>
@@ -287,100 +334,90 @@ export function Baking({
             />
           )}
         </section>
-        <aside className="baking-ticket">
-          <span className="ticket-pin" aria-hidden="true">
-            ✦
-          </span>
-          <span className="eyebrow">THE CRUMB & CAULDRON</span>
-          <h3>{s.stage === "result" ? "Order up!" : "Made just for you"}</h3>
-          <ul className="ticket-ingredients">
-            <li>
-              <span>DOUGH</span>
-              {r.base}
-            </li>
-            <li>
-              <span>FILLING</span>
-              {r.filling}
-            </li>
-            <li>
-              <span>FINISH</span>
-              {r.topping}
-            </li>
-          </ul>
-          {s.orderIds.length > 1 && (
-            <ol className="sampler-list" aria-label="Sampler contents">
-              {s.orderIds.map((recipe, i) => (
-                <li key={recipe} className={i < s.part ? "packed" : ""}>
-                  {i < s.part ? "✓ " : ""}
-                  {recipeFor(recipe).name}
-                  {i === s.part ? " · making now" : ""}
-                </li>
-              ))}
-            </ol>
-          )}
-          {s.stage === "result" ? (
-            <>
-              <div
-                className="baking-stars"
-                aria-label={`${score} of 3 quality stars`}
-              >
-                {[0, 1, 2].map((i) => (
-                  <Star
-                    key={i}
-                    size={26}
-                    fill={score > i ? "currentColor" : "none"}
-                  />
+        {(s.stage !== "play" || help) && (
+          <aside className="baking-ticket">
+            <span className="ticket-pin" aria-hidden="true">
+              ✦
+            </span>
+            <span className="eyebrow">THE CRUMB & CAULDRON</span>
+            <h3>{s.stage === "result" ? "Order up!" : "Made just for you"}</h3>
+            <ul className="ticket-ingredients">
+              <li>
+                <span>DOUGH</span>
+                {r.base}
+              </li>
+              <li>
+                <span>FILLING</span>
+                {r.filling}
+              </li>
+              <li>
+                <span>FINISH</span>
+                {r.topping}
+              </li>
+            </ul>
+            {s.orderIds.length > 1 && (
+              <ol className="sampler-list" aria-label="Sampler contents">
+                {s.orderIds.map((recipe, i) => (
+                  <li key={recipe} className={i < s.part ? "packed" : ""}>
+                    {i < s.part ? "✓ " : ""}
+                    {recipeFor(recipe).name}
+                    {i === s.part ? " · making now" : ""}
+                  </li>
                 ))}
-              </div>
-              <blockquote>
-                “
-                {score === 3
-                  ? "Exactly what I was hoping for. Thank you, Rowan!"
-                  : score === 2
-                    ? "Still warm, and made just for me? Lovely."
-                    : "A little rustic. I can tell you put your heart into it."}
-                ”<cite>— {r.customer}</cite>
-              </blockquote>
-              <div className="baking-payment">
-                <Coins size={18} />
-                <strong>
-                  {last
-                    ? 12 * s.orderIds.length +
-                      total * 4 +
-                      bonus * s.orderIds.length
-                    : 12 + score * 4 + bonus}
-                </strong>
-                <span>{last ? "coins earned" : "coins in your sampler"}</span>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="ticket-tip">
-                <Sparkles size={19} />
-                <p>
-                  {s.assisted
-                    ? {
-                        ember:
-                          "A wider timing window, with the same possible rewards.",
-                        moon: "Piece names and rotation hints help you match the outlines.",
-                        ghost:
-                          "Keep the recipe visible while you choose the bowls.",
-                        cinnamon:
-                          "A broader guide makes icing easier to follow.",
-                      }[id]
-                    : intro.hint}
-                </p>
-              </div>
-              <small className="baking-save-note">
-                Your progress is saved.
-                <br />
-                {id === "ember"
-                  ? "Leaving the kitchen pauses the beat."
-                  : "Take all the time you need."}
-              </small>
-            </>
-          )}
-        </aside>
+              </ol>
+            )}
+            {s.stage === "result" ? (
+              <>
+                <blockquote>
+                  “
+                  {score === 3
+                    ? "Exactly what I was hoping for. Thank you, Rowan!"
+                    : score === 2
+                      ? "Still warm, and made just for me? Lovely."
+                      : "A little rustic. I can tell you put your heart into it."}
+                  ”<cite>— {r.customer}</cite>
+                </blockquote>
+                <div className="baking-payment">
+                  <Coins size={18} />
+                  <strong>
+                    {last
+                      ? 12 * s.orderIds.length +
+                        total * 4 +
+                        bonus * s.orderIds.length
+                      : 12 + score * 4 + bonus}
+                  </strong>
+                  <span>{last ? "coins earned" : "coins in your sampler"}</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="ticket-tip">
+                  <Sparkles size={19} />
+                  <p>
+                    {s.assisted
+                      ? {
+                          ember:
+                            "A wider timing window, with the same possible rewards.",
+                          moon: "Piece names and rotation hints help you match the outlines.",
+                          ghost:
+                            "Keep the recipe visible while you choose the bowls.",
+                          cinnamon:
+                            "A broader guide makes icing easier to follow.",
+                        }[id]
+                      : intro.hint}
+                  </p>
+                </div>
+                <small className="baking-save-note">
+                  Your progress is saved.
+                  <br />
+                  {id === "ember"
+                    ? "Leaving the kitchen pauses the beat."
+                    : "Take all the time you need."}
+                </small>
+              </>
+            )}
+          </aside>
+        )}
       </div>
     </div>
   );

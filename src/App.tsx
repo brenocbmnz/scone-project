@@ -732,6 +732,7 @@ export default function App() {
         <GameOverlay
           title={overlayTitle}
           wide={overlay !== "settings"}
+          fitted={overlay === "baking"}
           onClose={() => setOverlay(null)}
         >
           {overlay === "baking" ? (

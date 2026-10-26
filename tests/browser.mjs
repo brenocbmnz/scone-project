@@ -38,6 +38,7 @@ try {
     "novel",
     "room",
     "baking",
+    "baking-viewport",
     "presentation",
   ]) {
     const child = spawn(process.execPath, [`tests/${script}.mjs`], {

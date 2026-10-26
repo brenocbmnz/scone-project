@@ -1,0 +1,379 @@
+.overlay:has(> .baking-modal) {
+  padding: 8px;
+}
+/* Baking is a viewport-sized game surface; other overlays remain scrollable. */
+.modal.baking-modal {
+  height: min(850px, calc(100dvh - 32px));
+  max-height: none;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 14px 22px 18px;
+}
+.baking-modal .overlay-heading {
+  flex: none;
+  margin: 0 0 10px;
+  padding-bottom: 8px;
+}
+.baking-modal .signature-game {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.baking-modal .baking-header {
+  flex: none;
+  margin: 0 0 12px;
+  gap: 8px;
+  display: flex;
+  align-items: center;
+}
+.baking-modal .baking-header h2 {
+  font-size: 24px;
+  margin: 3px 0;
+}
+.baking-modal .baking-header p {
+  margin: 0;
+  font-size: 12px;
+}
+.baking-modal .baking-workspace {
+  flex: 1;
+  min-height: 0;
+  gap: 20px;
+  align-items: stretch;
+  grid-template-rows: minmax(0, 1fr);
+}
+.baking-modal .baking-station {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  container-type: size;
+}
+.baking-modal .game-play .baking-workspace {
+  display: flex;
+}
+.baking-modal .game-play .baking-station {
+  flex: 1;
+}
+.baking-modal .signature-direction {
+  flex: none;
+  min-height: 0;
+  margin: 0 0 8px;
+}
+.baking-modal .signature-direction h3 {
+  font-size: 17px;
+  margin: 0;
+}
+.baking-modal .game-play .signature-direction p {
+  display: none;
+}
+.baking-modal .work-board-frame {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  container-type: size;
+}
+.baking-modal .signature-board {
+  position: absolute;
+  width: min(100cqw, 173.913cqh);
+  height: min(57.5cqw, 100cqh);
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border: 0;
+  border-radius: 12px;
+}
+.baking-modal .puzzle-board .work-board-frame {
+  height: 100%;
+}
+.baking-modal .signature-actions {
+  flex: none;
+  margin: 8px 0 0;
+  gap: 6px;
+}
+.baking-modal .signature-actions button,
+.baking-modal .signature-primary {
+  min-height: 44px;
+  padding: 9px 14px;
+  font-size: 12px;
+}
+.baking-modal .game-feedback {
+  flex: none;
+  min-height: 0;
+  margin: 7px 0 0;
+  font-size: 12px;
+}
+.baking-modal .rhythm-beats {
+  flex: none;
+  margin: 8px 0 0;
+}
+.baking-modal .icing-coverage {
+  flex: none;
+  margin: 8px 0 0;
+}
+.baking-modal .puzzle-area {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  container-type: size;
+}
+.baking-modal .puzzle-board {
+  position: absolute;
+  width: min(100cqw, 173.913cqh);
+  height: min(57.5cqw, 100cqh);
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+.baking-modal .puzzle-board .signature-board {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.baking-modal .dough-tray {
+  flex: none;
+  margin: 8px 0 0;
+  gap: 6px;
+}
+.baking-modal .dough-tray button {
+  padding: 5px;
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  align-items: center;
+}
+.baking-modal .dough-tray svg {
+  width: 36px;
+  height: 36px;
+  grid-row: span 2;
+}
+.baking-modal .dough-tray strong {
+  font-size: 12px;
+}
+.baking-modal .dough-tray small {
+  font-size: 10px;
+}
+.baking-modal .game-moon .baking-station > .signature-primary {
+  margin-top: 7px;
+  flex: none;
+}
+.baking-modal .memory-pattern {
+  flex: none;
+  margin: 8px 0;
+  gap: 5px;
+}
+.baking-modal .ingredient-bowls {
+  flex: none;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.baking-modal .ingredient-bowls button {
+  min-height: 80px;
+}
+.baking-modal .pastry-primer {
+  min-height: 0;
+  height: 100%;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.baking-modal .signature-emblem {
+  font-size: 48px;
+}
+.baking-modal .pastry-primer h3 {
+  font-size: 23px;
+  margin: 8px 0;
+}
+.baking-modal .pastry-primer p {
+  margin: 0;
+}
+.baking-modal .primer-controls {
+  text-align: left;
+  padding: 12px 12px 12px 32px;
+  margin: 14px 0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.baking-modal .pastry-primer small {
+  margin-top: 10px;
+}
+.baking-modal .baking-ticket {
+  padding: 20px 16px;
+  overflow: hidden;
+}
+.baking-modal .mobile-quality {
+  flex: none;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 10px;
+}
+.baking-modal .result-action {
+  flex: none;
+  margin-top: 12px;
+}
+@media (max-width: 760px) {
+  .modal.baking-modal {
+    height: calc(100dvh - 16px);
+    padding: 10px 12px 12px;
+  }
+  .baking-modal .baking-workspace {
+    display: flex;
+  }
+  .baking-modal .baking-station {
+    flex: 1;
+  }
+  .baking-modal .baking-ticket {
+    display: none;
+  }
+  .baking-modal .baking-header {
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+  .baking-modal .baking-header h2 {
+    font-size: 21px;
+  }
+  .baking-modal .signature-preferences {
+    gap: 8px;
+  }
+  .baking-modal .signature-preferences label {
+    font-size: 11px;
+  }
+  .baking-modal .signature-direction h3 {
+    font-size: 14px;
+  }
+  .baking-modal .signature-actions button {
+    padding: 8px;
+  }
+  .baking-modal .ingredient-bowls {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .baking-modal .ingredient-bowls button {
+    min-height: 67px;
+    padding: 6px;
+  }
+  .baking-modal .ingredient-bowls button > span {
+    font-size: 23px;
+  }
+  .baking-modal .memory-pattern span {
+    font-size: 10px;
+    padding: 5px 2px;
+  }
+  .baking-modal .dough-tray button {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .baking-modal .dough-tray small {
+    display: none;
+  }
+  .baking-modal .game-feedback {
+    font-size: 11px;
+  }
+}
+@media (max-height: 540px) and (min-width: 600px) {
+  .modal.baking-modal {
+    height: calc(100dvh - 16px);
+    padding: 6px 14px;
+  }
+  .baking-modal .overlay-heading {
+    position: absolute;
+    right: 14px;
+    top: 8px;
+    border: 0;
+    z-index: 2;
+  }
+  .baking-modal .overlay-heading > .eyebrow {
+    display: none;
+  }
+  .baking-modal .baking-header {
+    margin: 0 38px 6px 0;
+  }
+  .baking-modal .baking-header h2 {
+    font-size: 18px;
+  }
+  .baking-modal .baking-header p,
+  .baking-modal .baking-header .eyebrow {
+    display: none;
+  }
+  .baking-modal .baking-ticket {
+    display: none;
+  }
+  .baking-modal .baking-workspace {
+    display: flex;
+  }
+  .baking-modal .baking-station {
+    flex: 1;
+  }
+  .baking-modal .game-play .baking-station {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(230px, 0.8fr);
+    grid-template-rows: auto 1fr auto auto;
+    gap: 5px 14px;
+  }
+  .baking-modal .game-play .signature-direction {
+    grid-column: 1 / -1;
+  }
+  .baking-modal .game-play .work-board-frame,
+  .baking-modal .game-play .puzzle-area {
+    grid-column: 1;
+    grid-row: 2 / -1;
+    width: 100%;
+    height: 100%;
+  }
+  .baking-modal
+    .game-play
+    .baking-station
+    > :not(.work-board-frame):not(.puzzle-area):not(.signature-direction) {
+    grid-column: 2;
+    margin: 0;
+    align-self: center;
+  }
+  .baking-modal .pastry-primer {
+    padding: 6px;
+  }
+  .baking-modal .signature-emblem,
+  .baking-modal .pastry-primer > small {
+    display: none;
+  }
+  .baking-modal .pastry-primer h3 {
+    font-size: 19px;
+    margin: 4px;
+  }
+  .baking-modal .primer-controls {
+    margin: 6px 0;
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+  .baking-modal .ingredient-bowls button {
+    min-height: 55px;
+  }
+  .baking-modal .ingredient-bowls button > span {
+    font-size: 20px;
+  }
+}
+@media (max-width: 760px) {
+  .baking-modal .pastry-primer {
+    padding: 8px;
+  }
+  .baking-modal .pastry-primer h3 {
+    font-size: 20px;
+  }
+  .baking-modal .pastry-primer p {
+    font-size: 12px;
+  }
+  .baking-modal .primer-controls {
+    margin: 10px 0;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+  .baking-modal .pastry-primer small {
+    font-size: 10px;
+  }
+}
+.baking-modal .baking-stars {
+  flex: none;
+  margin: 8px 0 0;
+  justify-content: center;
+}

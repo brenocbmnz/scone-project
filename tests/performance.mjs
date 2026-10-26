@@ -43,7 +43,7 @@ try {
     .click();
   await page.getByRole("button", { name: "Let’s get baking" }).click();
   await page
-    .getByRole("button", { name: "Start kneading", exact: true })
+    .getByRole("button", { name: "Start baking", exact: true })
     .click();
   const before = await cdp.send("Performance.getMetrics");
   await page.evaluate(() => {

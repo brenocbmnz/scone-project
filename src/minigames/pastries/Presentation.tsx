@@ -15,26 +15,28 @@ export function WorkBoard({
   onPointerCancel?: React.PointerEventHandler<SVGSVGElement>;
 }) {
   return (
-    <svg
-      className="signature-board"
-      viewBox="0 0 800 460"
-      role="img"
-      aria-label={label}
-      {...events}
-    >
-      <rect width="800" height="460" rx="16" fill="#b98460" />
-      {[0, 1, 2, 3, 4].map((i) => (
-        <path
-          key={i}
-          d={`M0 ${40 + i * 90}Q250 ${10 + i * 90} 500 ${40 + i * 90}T800 ${40 + i * 90}`}
-          stroke="#9e6d50"
-          strokeWidth="3"
-          fill="none"
-        />
-      ))}
-      <ellipse cx="400" cy="250" rx="300" ry="175" fill="#ffedbb18" />
-      {children}
-    </svg>
+    <div className="work-board-frame">
+      <svg
+        className="signature-board"
+        viewBox="0 0 800 460"
+        role="img"
+        aria-label={label}
+        {...events}
+      >
+        <rect width="800" height="460" rx="16" fill="#b98460" />
+        {[0, 1, 2, 3, 4].map((i) => (
+          <path
+            key={i}
+            d={`M0 ${40 + i * 90}Q250 ${10 + i * 90} 500 ${40 + i * 90}T800 ${40 + i * 90}`}
+            stroke="#9e6d50"
+            strokeWidth="3"
+            fill="none"
+          />
+        ))}
+        <ellipse cx="400" cy="250" rx="300" ry="175" fill="#ffedbb18" />
+        {children}
+      </svg>
+    </div>
   );
 }
 export function ResultPastry({ session: s }: { session: PastrySession }) {
