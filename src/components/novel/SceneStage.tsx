@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { BakeryRoomArt } from "./BakeryRoom";
 import type { SceneId } from "../../game/scenes";
 import type { Npc } from "../../game/data";
@@ -608,7 +608,7 @@ function RowanSprite() {
   );
 }
 
-export function SceneStage({
+function SceneStageView({
   scene,
   actor,
   companion,
@@ -654,3 +654,5 @@ export function SceneStage({
     </div>
   );
 }
+
+export const SceneStage = memo(SceneStageView);

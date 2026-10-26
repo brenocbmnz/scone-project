@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { memo, useState } from "react";
 import {
   Banknote,
   Flame,
@@ -28,7 +28,7 @@ const icons = {
   orin: Heart,
   lucien: Heart,
 };
-export function BakeryRoomArt() {
+function BakeryRoomIllustration() {
   return (
     <svg
       viewBox="0 0 1400 780"
@@ -452,3 +452,5 @@ export function BakeryRoom({
     </section>
   );
 }
+
+export const BakeryRoomArt = memo(BakeryRoomIllustration);

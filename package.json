@@ -7,7 +7,8 @@
     "build": "tsc -b && vite build",
     "test": "vitest run",
     "preview": "vite preview --host 0.0.0.0",
-    "test:browser": "node tests/browser.mjs"
+    "test:browser": "node tests/browser.mjs",
+    "benchmark": "node tests/performance.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",

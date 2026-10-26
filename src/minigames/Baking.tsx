@@ -74,6 +74,7 @@ export function Baking({
     commit,
     running,
     setRunning,
+    onFrame,
   } = usePastry(orderIds, seed, draft, onDraft);
   const [watchToken, setWatchToken] = useState(0);
   const paid = useRef(false);
@@ -262,6 +263,7 @@ export function Baking({
             <RhythmGame
               session={s}
               current={current}
+              onFrame={onFrame}
               commit={commit}
               running={running}
               setRunning={setRunning}

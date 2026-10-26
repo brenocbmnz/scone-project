@@ -83,7 +83,7 @@ async function puzzle() {
 await seed({ level: 1, day: 1, orders: 0 });
 await expect(
   page.getByRole("heading", { name: "Emberheart Bun", exact: true }),
-).toHaveCount(2);
+).toHaveCount(1);
 await page.getByRole("button", { name: "Start kneading", exact: true }).click();
 await page.clock.runFor(1400);
 await page.getByRole("button", { name: /Knead dough/ }).click();
@@ -114,6 +114,11 @@ await page
 expect((await state()).money - before.money).toBe(24);
 expect((await state()).orders).toBe(1);
 expect((await state()).baking).toBeNull();
+// A delayed animation frame must not slow the game clock or stretch the rhythm.
+await seed({ level: 1, day: 1, orders: 0 });
+await page.getByRole("button", { name: "Start kneading", exact: true }).click();
+await page.clock.fastForward(2100);
+expect((await state()).baking.beats.length).toBeGreaterThanOrEqual(1);
 // Crescent: actual drag-and-drop, rotation, keyboard placement, undo and result resume.
 await seed({ level: 2, day: 1, orders: 1 });
 await page.getByRole("button", { name: "Start dough puzzle" }).click();

@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { beatAt, knead, rhythmWindow, type PastrySession } from "./rules";
 import { WorkBoard } from "./Presentation";
 export function RhythmGame({
   session: s,
   current,
+  onFrame,
   commit,
   running,
   setRunning,
@@ -11,6 +12,7 @@ export function RhythmGame({
 }: {
   session: PastrySession;
   current: React.RefObject<PastrySession>;
+  onFrame: React.RefObject<((state: PastrySession) => void) | null>;
   commit: (s: PastrySession) => void;
   running: boolean;
   setRunning: (r: boolean) => void;
@@ -20,14 +22,36 @@ export function RhythmGame({
   const [squash, setSquash] = useState(0);
   const cue = useRef(-1),
     tapRef = useRef(() => {});
-  const next = s.beats.length;
-  const remaining = beatAt(next) - s.elapsed;
-  useEffect(() => {
-    if (running && remaining <= 30 && cue.current !== next) {
-      cue.current = next;
-      tone(330, 0.09);
-    }
-  }, [remaining, next, running, tone]);
+  const ring = useRef<SVGCircleElement>(null);
+  const prompt = useRef<SVGTextElement>(null);
+  useLayoutEffect(() => {
+    const draw = (state: PastrySession) => {
+      const next = state.beats.length;
+      const remaining = beatAt(next) - state.elapsed;
+      const ready = Math.abs(remaining) <= rhythmWindow(state.assisted);
+      ring.current?.setAttribute(
+        "r",
+        String(118 + Math.max(0, Math.min(1, remaining / 1050)) * 70),
+      );
+      ring.current?.setAttribute("stroke", ready ? "#cce9bd" : "#f8ddb3");
+      const text = running
+        ? ready
+          ? "KNEAD!"
+          : "Feel the beat…"
+        : "The dough is resting.";
+      if (prompt.current && prompt.current.textContent !== text)
+        prompt.current.textContent = text;
+      if (running && remaining <= 30 && cue.current !== next) {
+        cue.current = next;
+        tone(330, 0.09);
+      }
+    };
+    onFrame.current = draw;
+    draw(current.current);
+    return () => {
+      onFrame.current = null;
+    };
+  }, [running, s.assisted, s.beats.length, tone, current, onFrame]);
   const tap = () => {
     if (!running) return;
     const before = current.current;
@@ -59,8 +83,6 @@ export function RhythmGame({
     document.addEventListener("keydown", key);
     return () => document.removeEventListener("keydown", key);
   }, []);
-  const radius = 118 + Math.max(0, Math.min(1, remaining / 1050)) * 70;
-  const ready = Math.abs(remaining) <= rhythmWindow(s.assisted);
   return (
     <>
       <div className="signature-direction">
@@ -74,9 +96,10 @@ export function RhythmGame({
         <circle
           cx="400"
           cy="220"
-          r={radius}
+          ref={ring}
+          r="188"
           fill="none"
-          stroke={ready ? "#cce9bd" : "#f8ddb3"}
+          stroke="#f8ddb3"
           strokeWidth="8"
           opacity={running ? 0.85 : 0.25}
         />
@@ -107,12 +130,15 @@ export function RhythmGame({
             strokeLinecap="round"
           />
         </g>
-        <text x="400" y="385" textAnchor="middle" fill="#fff0d4" fontSize="20">
-          {running
-            ? ready
-              ? "KNEAD!"
-              : "Feel the beat…"
-            : "The dough is resting."}
+        <text
+          ref={prompt}
+          x="400"
+          y="385"
+          textAnchor="middle"
+          fill="#fff0d4"
+          fontSize="20"
+        >
+          The dough is resting.
         </text>
       </WorkBoard>
       <div className="rhythm-beats" aria-label="Kneading results">

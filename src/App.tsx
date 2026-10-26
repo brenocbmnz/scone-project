@@ -516,7 +516,11 @@ export default function App() {
               : "Settings & save";
   return (
     <div
-      className={"novel-app " + (roomVisible ? "room-mode" : "dialogue-mode")}
+      className={
+        "novel-app " +
+        (roomVisible ? "room-mode" : "dialogue-mode") +
+        (menu || overlay || puzzle ? " has-overlay" : "")
+      }
       ref={frame}
     >
       <SceneStage

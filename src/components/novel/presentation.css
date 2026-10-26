@@ -418,3 +418,24 @@ button:focus-visible {
     scale: 0.99;
   }
 }
+/* Keep the hidden world out of the compositor while a game/menu owns the screen. */
+.novel-app.has-overlay > :not(.overlay):not(.toast),
+.novel-app:has(> .overlay) > :not(.overlay):not(.toast) {
+  visibility: hidden;
+}
+.novel-app.has-overlay > :not(.overlay):not(.toast) *,
+.novel-app:has(> .overlay) > :not(.overlay):not(.toast) * {
+  animation-play-state: paused !important;
+}
+.novel-app .overlay {
+  backdrop-filter: none;
+  background: #182231fa;
+}
+.room-mode .scene-stage {
+  display: none;
+}
+/* SVG opacity animation can repaint the whole illustrated room; use a gentle low-rate flicker. */
+.oven-fire,
+.bakery-art path[fill="#ffda91"] {
+  animation-timing-function: steps(6, end);
+}

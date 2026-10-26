@@ -18,7 +18,9 @@ export const useGame = create<Store>((set, get) => ({
   game: readProgress(AUTO_SAVE) ?? initial(),
   notice: "",
   update: (fn) => {
-    const game = fn(get().game);
+    const previous = get().game;
+    const game = fn(previous);
+    if (game === previous) return;
     const saved = writeProgress(AUTO_SAVE, game);
     set({
       game,

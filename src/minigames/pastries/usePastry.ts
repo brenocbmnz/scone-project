@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   advanceRhythm,
   freshPastry,
@@ -16,11 +16,12 @@ export function usePastry(
   const current = useRef(session),
     save = useRef(onDraft);
   save.current = onDraft;
-  const commit = (next: PastrySession, persist = true) => {
+  const onFrame = useRef<((s: PastrySession) => void) | null>(null);
+  const commit = useCallback((next: PastrySession, persist = true) => {
     current.current = next;
     setSession(next);
     if (persist) save.current(next);
-  };
+  }, []);
   useEffect(() => {
     save.current(current.current);
     return () => save.current(current.current);
@@ -38,13 +39,24 @@ export function usePastry(
         pause();
         return;
       }
+      const previous = current.current;
       const next = advanceRhythm(
-        current.current,
-        current.current.elapsed + Math.min(80, now - last),
+        previous,
+        previous.elapsed + Math.max(0, now - last),
       );
       last = now;
       const persist = now - saved >= 200 || next.stage === "result";
-      commit(next, persist);
+      // The clock and visual frame bypass React. Only discrete game events render UI.
+      if (
+        next.beats.length !== previous.beats.length ||
+        next.stage !== previous.stage
+      ) {
+        commit(next, persist);
+      } else {
+        current.current = next;
+        if (persist) save.current(next);
+      }
+      if (next.stage === "play") onFrame.current?.(next);
       if (persist) saved = now;
       if (next.stage === "result") setRunning(false);
       else raf = requestAnimationFrame(tick);
@@ -57,5 +69,5 @@ export function usePastry(
       save.current(current.current);
     };
   }, [running]);
-  return { session, current, commit, running, setRunning };
+  return { session, current, commit, running, setRunning, onFrame };
 }

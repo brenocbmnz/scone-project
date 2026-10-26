@@ -98,3 +98,5 @@ The browser runner starts its own Vite server on port 4175, runs all six checks,
 - `tests/presentation.mjs`: protagonist/partner staging, text pacing, conversation log shortcut isolation, and responsive dialogue bounds.
 
 Screenshots are written to `artifacts/`. Unit tests also simulate a complete five-day route using normal economy rules and verify compatibility with the first iteration’s saves. GitHub Actions runs unit checks, TypeScript/build, and browser checks on pushes and pull requests; it does not deploy.
+
+Performance profiling: `CPU_RATE=4 GAME_URL=http://localhost:5173 npm run benchmark` samples cooking frame pacing, React commits and save writes. Use production preview builds for comparisons. See [runtime performance findings](docs/runtime-performance.md) for the rendering-loop changes, controlled before/after results and engine options.
